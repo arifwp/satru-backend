@@ -1,0 +1,75 @@
+import { ObjectId } from "mongodb";
+import mongoose, { Schema } from "mongoose";
+import { Product_Interface } from "../interface/productInterface";
+import { Product_Variant_Interface } from "../interface/productVariantInterface";
+
+const ProductVariantSchema: Schema<Product_Variant_Interface> =
+  new Schema<Product_Variant_Interface>({
+    variantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "Id varian harus diisi"],
+      default: () => new ObjectId(),
+      unique: true,
+    },
+    variantName: {
+      type: String,
+      required: [true, "Nama varian harus diisi"],
+      trim: true,
+    },
+    variantPrice: {
+      type: Number,
+      required: [true, "Harga varian harus diisi"],
+    },
+    variantStock: { type: Number, required: [true, "Stock harus diisi"] },
+    isDeleted: {
+      type: Number,
+      required: [true, "Keterangan delete harus diisi"],
+    },
+    createdAt: { type: Date, required: [true, "Tanggal dibuat harus diisi"] },
+  });
+
+const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
+  code: { type: String, unique: true, trim: true },
+  name: { type: String, required: [true, "Nama Harus diisi"], trim: true },
+  description: {
+    type: String,
+    required: [true, "Deskripsi harus diisi"],
+    trim: true,
+  },
+  price: { type: Number, required: [true, "Harga harus diisi"], trim: true },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: [true, "Kategori harus diisi"],
+  },
+  brandId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Brand",
+    required: false,
+  },
+  stock: { type: Number, required: [true, "Stok harus diisi"] },
+  minimumStock: { type: Number },
+  img: { type: String },
+  variant: [ProductVariantSchema],
+  isDeleted: {
+    type: Number,
+    required: [true, "Keterangan delete harus diisi"],
+  },
+  createdAt: { type: Date, required: [true, "Tanggal dibuat harus diisi"] },
+});
+
+ProductSchema.post("save", function (error: any, doc: any, next: any) {
+  if (error.code === 11000) {
+    if (error.keyPattern.code) {
+      next(new Error("Kode produk sudah dipakai"));
+    } else {
+      next(error);
+    }
+  } else {
+    next(error);
+  }
+});
+
+const Product = mongoose.model<Product_Interface>("Products", ProductSchema);
+
+export default Product;
