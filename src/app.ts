@@ -7,6 +7,7 @@ import userRoute from "./routes/userRoute";
 import multer from "multer";
 import path = require("path");
 import productRouter from "./routes/productRoute";
+import formData from "express-form-data";
 
 dotenv.config();
 
@@ -18,6 +19,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(formData.parse());
+
 app.use(
   "/uploads/users/avatars",
   express.static(path.join(__dirname, "../uploads/users/avatars"))
