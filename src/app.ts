@@ -1,13 +1,12 @@
-import express, { Application } from "express";
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-import authRouter from "./routes/authRoute";
-import userRoute from "./routes/userRoute";
+import express, { Application, NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import multer from "multer";
-import path = require("path");
+import authRouter from "./routes/authRoute";
 import productRouter from "./routes/productRoute";
-import formData from "express-form-data";
+import userRoute from "./routes/userRoute";
+import path = require("path");
 
 dotenv.config();
 
@@ -16,20 +15,37 @@ const upload = multer();
 const PORT = process.env.PORT || 3000;
 
 // MIDDLEWARE
+// Middleware for parsing application/json
 app.use(express.json());
+// Middleware for parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(formData.parse());
 
-app.use(
-  "/uploads/users/avatars",
-  express.static(path.join(__dirname, "../uploads/users/avatars"))
-);
+// app.use(
+//   "/uploads/users/avatars",
+//   express.static(path.join(__dirname, "../uploads/users/avatars"))
+// );
+
+// app.use(
+//   "/uploads/products",
+//   express.static(path.join(__dirname, "../uploads/products"))
+// );
 
 // ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/product", productRouter);
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message });
+  } else if (err) {
+    return res.status(500).json({ message: err.message });
+  }
+  next();
+});
 
 mongoose
   .connect(process.env.MONGO_URI as string)
