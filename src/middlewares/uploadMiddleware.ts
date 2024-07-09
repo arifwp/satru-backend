@@ -27,12 +27,6 @@ const imgFilter = (
   cb(null, true);
 };
 
-// const upload = multer({
-//   storage: storage,
-//   limits: { fileSize: 2 * 1024 * 1024 },
-//   fileFilter: imgFilter,
-// });
-
 export const configUploadAvatar = multer({
   storage: storage("users/avatars"),
   limits: { fileSize: 2 * 1024 * 1024 },
@@ -43,4 +37,4 @@ export const configUploadProductImages = multer({
   storage: storage("products"),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: imgFilter,
-}).single("productImages");
+}).single("imageProduct");
