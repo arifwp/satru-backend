@@ -19,6 +19,6 @@ export const authMiddlewware = (
     req.userId = decoded.id;
     next();
   } catch (error: any) {
-    res.status(401).json({ message: "Token tidak valid" });
+    res.status(401).json({ message: "Token sudah expired/tidak valid" });
   }
 };
