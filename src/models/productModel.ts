@@ -1,32 +1,5 @@
-import { ObjectId } from "mongodb";
 import mongoose, { Schema } from "mongoose";
 import { Product_Interface } from "../interface/productInterface";
-import { Product_Variant_Interface } from "../interface/productVariantInterface";
-
-const ProductVariantSchema: Schema<Product_Variant_Interface> =
-  new Schema<Product_Variant_Interface>({
-    variantId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: [true, "Id varian harus diisi"],
-      default: () => new ObjectId(),
-      unique: true,
-    },
-    variantName: {
-      type: String,
-      required: [true, "Nama varian harus diisi"],
-      trim: true,
-    },
-    variantPrice: {
-      type: Number,
-      required: [true, "Harga varian harus diisi"],
-    },
-    variantStock: { type: Number, required: [true, "Stock harus diisi"] },
-    isDeleted: {
-      type: Number,
-      required: [true, "Keterangan delete harus diisi"],
-    },
-    createdAt: { type: Date, required: [true, "Tanggal dibuat harus diisi"] },
-  });
 
 const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
   code: { type: String, unique: true, trim: true },
@@ -49,8 +22,38 @@ const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
   },
   stock: { type: Number, required: [true, "Stok harus diisi"] },
   minimumStock: { type: Number },
-  img: { type: String },
-  variant: [ProductVariantSchema],
+  imageProduct: { type: String },
+  variants: [
+    {
+      variantId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: new mongoose.Types.ObjectId(),
+      },
+      variantName: {
+        type: String,
+        required: [true, "Nama varian harus diisi"],
+        trim: true,
+      },
+      variantPrice: {
+        type: Number,
+        required: [true, "Harga varian harus diisi"],
+      },
+      variantStock: {
+        type: Number,
+        required: [true, "Stok varian harus diisi"],
+      },
+      isDeleted: {
+        type: Number,
+        required: [true, "Keterangan delete harus diisi"],
+        default: 0,
+      },
+      createdAt: {
+        type: Date,
+        required: [true, "Tanggal dibuat harus diisi"],
+        default: Date.now(),
+      },
+    },
+  ],
   isDeleted: {
     type: Number,
     required: [true, "Keterangan delete harus diisi"],
