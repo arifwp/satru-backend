@@ -9,8 +9,8 @@ export const ResourceDataWithImage = async (
   errorCode: number,
   message: string,
   directory: string,
-  img: any,
-  res: Response
+  img?: any,
+  res?: Response
 ) => {
   if (img) {
     const avatarPath = path.join(__dirname, directory, img);
@@ -18,8 +18,8 @@ export const ResourceDataWithImage = async (
       await fsPromises.unlink(avatarPath);
       console.log("unlink succedd");
     } catch (error: any) {
-      return res.status(500).json({ message: error.message });
+      return res && res.status(500).json({ message: error.message });
     }
   }
-  res.status(errorCode).json({ message: message });
+  res && res.status(errorCode).json({ status: status, message: message });
 };
