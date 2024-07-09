@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
       new: true,
     }).select("-password");
 
-    res.cookie("jwt", token, { httpOnly: true, maxAge: 3600 });
+    res.cookie("jwt", token, { httpOnly: true, maxAge: 86400 });
     res.status(200).json({
       message: "Login berhasil",
       data: updateUser,
