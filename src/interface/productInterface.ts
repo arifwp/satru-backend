@@ -10,7 +10,7 @@ export interface Product_Interface extends Document {
   brandId?: Types.ObjectId;
   stock: number;
   minimumStock?: number;
-  imageProduct?: String;
+  imageProduct?: string;
   variants?: Product_Variant_Interface[];
   isDeleted: number;
   createdAt: Date;
