@@ -2,15 +2,16 @@ import multer, { FileFilterCallback } from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
-const storage = multer.diskStorage({
-  destination: "uploads/users/avatars",
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${uuidv4()}${path.extname(
-      file.originalname
-    )}`;
-    cb(null, uniqueSuffix);
-  },
-});
+const storage = (destination: string) =>
+  multer.diskStorage({
+    destination: `uploads/${destination}`,
+    filename: (req, file, cb) => {
+      const uniqueSuffix = `${Date.now()}-${uuidv4()}${path.extname(
+        file.originalname
+      )}`;
+      cb(null, uniqueSuffix);
+    },
+  });
 
 const imgFilter = (
   req: Express.Request,
@@ -26,10 +27,14 @@ const imgFilter = (
   cb(null, true);
 };
 
-const upload = multer({
-  storage: storage,
+export const configUploadAvatar = multer({
+  storage: storage("users/avatars"),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: imgFilter,
-});
+}).single("avatar");
 
-export default upload;
+export const configUploadProductImages = multer({
+  storage: storage("products"),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: imgFilter,
+}).single("imageProduct");
