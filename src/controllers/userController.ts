@@ -4,6 +4,7 @@ import fs from "fs";
 import mongoose from "mongoose";
 import path from "path";
 import User from "../models/userModel";
+import { ResourceDataWithImage } from "../utils/resource";
 
 const fsPromises = fs.promises;
 
@@ -55,9 +56,17 @@ export const getDetailUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   const userId = req.params.userId;
+  const uploadAvatar = req.file?.filename;
   const isObjectId = mongoose.Types.ObjectId.isValid(userId);
   if (!isObjectId) {
-    return res.status(400).json({ message: "Id user tidak valid" });
+    return ResourceDataWithImage(
+      false,
+      400,
+      "Id user tidak valid",
+      "../../uploads/users/avatars",
+      uploadAvatar,
+      res
+    );
   }
 
   const { name, bornDate } = req.body;
@@ -67,38 +76,22 @@ export const updateUser = async (req: Request, res: Response) => {
       "-password -token -__v"
     );
     if (!user) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
+      return ResourceDataWithImage(
+        false,
+        404,
+        "User tidak ditemukan",
+        "../../uploads/users/avatars",
+        uploadAvatar,
+        res
+      );
     }
 
     user.name = name;
     user.bornDate = bornDate;
     user.updatedAt = new Date(Date.now());
-    const updatedUser = await user.save();
+    await user.save();
 
-    res
-      .status(200)
-      .json({ message: "Update data user berhasil", data: updatedUser });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const updateAvatar = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
-  const isObjectId = mongoose.Types.ObjectId.isValid(userId);
-  if (!isObjectId) {
-    return res.status(400).json({ message: "Id user tidak valid" });
-  }
-
-  try {
-    const user = await User.findById({ _id: userId }).select(
-      "-password -token -__v"
-    );
-    if (!user) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
-    }
-
-    if (req.file) {
+    if (uploadAvatar) {
       if (user.avatar) {
         const oldAvatarPath = path.join(
           __dirname,
@@ -110,27 +103,39 @@ export const updateAvatar = async (req: Request, res: Response) => {
           try {
             await fsPromises.unlink(oldAvatarPath);
             user.updatedAt = new Date(Date.now());
-            user.avatar = req.file.filename;
+            user.avatar = uploadAvatar;
           } catch (error: any) {
-            return res.status(500).json({ message: error.message });
+            return ResourceDataWithImage(
+              false,
+              500,
+              error.message,
+              "../../uploads/users/avatars",
+              uploadAvatar,
+              res
+            );
           }
         } else {
           user.updatedAt = new Date(Date.now());
-          user.avatar = req.file.filename;
+          user.avatar = uploadAvatar;
         }
       }
-      user.avatar = req.file.filename;
-    } else {
-      return res.status(400).json({ message: "Tidak ada file image" });
+      user.avatar = uploadAvatar;
     }
 
-    const updatedAvatar = await user.save();
+    const updatedUser = await user.save();
 
     res
       .status(200)
-      .json({ message: "Update data user berhasil", data: updatedAvatar });
+      .json({ message: "Update data user berhasil", data: updatedUser });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    ResourceDataWithImage(
+      false,
+      500,
+      error.message,
+      "../../uploads/users/avatars",
+      uploadAvatar,
+      res
+    );
   }
 };
 
