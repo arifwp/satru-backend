@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
-import { ObjectId } from "mongodb";
+import fs from "fs";
 import mongoose from "mongoose";
 import Brand from "../models/brandModel";
 import Category from "../models/categoryModel";
 import Product from "../models/productModel";
+import { ResourceDataWithImage } from "../utils/resource";
+
+const fsPromises = fs.promises;
 
 export const createProduct = async (req: Request, res: Response) => {
   const {
@@ -15,48 +18,71 @@ export const createProduct = async (req: Request, res: Response) => {
     brandId,
     stock,
     minimumStock,
-    variant,
+    variants,
   } = req.body;
 
+  const imageProduct = req.file?.filename;
   const isCategoryValid = mongoose.Types.ObjectId.isValid(categoryId);
   const isBrandValid = mongoose.Types.ObjectId.isValid(brandId);
 
-  if (minimumStock > stock) {
-    return res
-      .status(400)
-      .json({ message: "Minimum stok tidak boleh lebih dari stok" });
+  if (Number(minimumStock) > Number(stock)) {
+    return ResourceDataWithImage(
+      false,
+      400,
+      "Minimum stok tidak boleh lebih dari stok",
+      "../../uploads/products",
+      imageProduct,
+      res
+    );
   }
 
   if (!isCategoryValid) {
-    return res.status(404).json({ message: "Id category tidak valid" });
+    return ResourceDataWithImage(
+      false,
+      404,
+      "Id kategori tidak valid",
+      "../../uploads/products",
+      imageProduct,
+      res
+    );
   }
 
   if (!isBrandValid) {
-    return res.status(404).json({ message: "Id brand tidak valid" });
+    return ResourceDataWithImage(
+      false,
+      404,
+      "Id merk tidak valid",
+      "../../uploads/products",
+      imageProduct,
+      res
+    );
   }
 
   try {
     const getCategory = await Category.findById({ _id: categoryId });
     const getBrand = await Brand.findById({ _id: brandId });
+
     if (!getCategory) {
-      return res.status(404).json({ message: "Kategori tidak ditemukan" });
+      return ResourceDataWithImage(
+        false,
+        404,
+        "Kategori tidak ditemukan",
+        "../../uploads/products",
+        imageProduct,
+        res
+      );
     }
 
     if (!getBrand) {
-      return res.status(404).json({ message: "Merk tidak ditemukan" });
+      return ResourceDataWithImage(
+        false,
+        404,
+        "Merk tidak ditemukan",
+        "../../uploads/products",
+        imageProduct,
+        res
+      );
     }
-
-    // Validasi variant array
-    const validatedVariants = variant.map((v: any) => {
-      return {
-        variantId: new ObjectId(),
-        variantName: v.variantName,
-        variantPrice: v.variantPrice,
-        variantStock: v.variantStock,
-        isDeleted: 0,
-        createdAt: Date.now(),
-      };
-    });
 
     const newProduct = new Product({
       code: code,
@@ -67,17 +93,35 @@ export const createProduct = async (req: Request, res: Response) => {
       brandId: brandId,
       stock: stock,
       minimumStock: minimumStock,
-      variant: validatedVariants,
+      imageProduct: imageProduct,
+      variants: variants
+        ? variants.map((variant: any) => ({
+            variantId: new mongoose.Types.ObjectId(),
+            variantName: variant.variantName,
+            variantPrice: variant.variantPrice,
+            variantStock: variant.variantStock,
+            isDeleted: 0,
+            createdAt: Date.now(),
+          }))
+        : [],
       isDeleted: 0,
       createdAt: Date.now(),
     });
 
     const product = await newProduct.save();
+
     res
       .status(201)
       .json({ message: "Berhasil menambahkan produk", data: product });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return ResourceDataWithImage(
+      false,
+      500,
+      error.message,
+      "../../uploads/products",
+      imageProduct,
+      res
+    );
   }
 };
 
