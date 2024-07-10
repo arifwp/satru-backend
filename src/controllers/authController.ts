@@ -33,20 +33,28 @@ export const login = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "Email tidak terdaftar" });
+      return res
+        .status(404)
+        .json({ status: false, message: "Email tidak terdaftar" });
     }
 
     const isPasswordValid = await bcryptjs.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: "Kata sandi salah" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Kata sandi salah" });
     }
 
     if (user.status === 2) {
       return res
         .status(403)
-        .json({ message: `Email ${user.email} telah di blokir admin` });
+        .json({
+          status: false,
+          message: `Email ${user.email} telah di blokir admin`,
+        });
     } else if (user.status === 3) {
       return res.status(200).json({
+        status: true,
         message:
           "Anda telah menonaktifkan akun anda sebelumnya, apakah anda yakin ingin mengaktifkannya kembali?",
         data: user,
@@ -71,6 +79,7 @@ export const login = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
+      status: true,
       message: "Login berhasil",
       data: updateUser,
     });
