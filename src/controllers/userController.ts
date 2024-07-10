@@ -45,6 +45,13 @@ export const getDetailUser = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
+
+    if (user.status !== 1) {
+      return res
+        .status(402)
+        .json({ status: false, message: "User di nonaktifkan" });
+    }
+
     res.status(200).json({
       message: "Detail user berhasil ditampilkan",
       data: user,
