@@ -9,12 +9,19 @@ import userRoute from "./routes/userRoute";
 import path = require("path");
 import outletRouter from "./routes/outletRoute";
 import typeOutletRouter from "./routes/typeOutletRoute";
+import cors from "cors";
 
 dotenv.config();
 
 const app: Application = express();
 const upload = multer();
 const PORT = process.env.PORT || 3000;
+const corsOptions = {
+  origin: "http://localhost:3001", // Ganti dengan asal aplikasi React.js Anda
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
 
 // MIDDLEWARE
 // Middleware for parsing application/json
@@ -24,14 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(cors(corsOptions));
 
 // app.use(
 //   "/uploads/users/avatars",
