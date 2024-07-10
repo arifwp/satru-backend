@@ -58,11 +58,18 @@ export const login = async (req: Request, res: Response) => {
       lastLogin: Date.now(),
       token: token,
     };
+
     const updateUser = await User.findByIdAndUpdate(user._id, update, {
       new: true,
     }).select("-password");
 
-    res.cookie("jwt", token, { httpOnly: true, maxAge: 86400 });
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 3600,
+      secure: true,
+      sameSite: "none",
+    });
+
     res.status(200).json({
       message: "Login berhasil",
       data: updateUser,
