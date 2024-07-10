@@ -7,6 +7,8 @@ import authRouter from "./routes/authRoute";
 import productRouter from "./routes/productRoute";
 import userRoute from "./routes/userRoute";
 import path = require("path");
+import outletRouter from "./routes/outletRoute";
+import typeOutletRouter from "./routes/typeOutletRoute";
 
 dotenv.config();
 
@@ -22,6 +24,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 // app.use(
 //   "/uploads/users/avatars",
@@ -37,6 +47,8 @@ app.use(bodyParser.json());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/product", productRouter);
+app.use("/api/v1/outlet", outletRouter);
+app.use("/api/v1/typeOutlet", typeOutletRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
