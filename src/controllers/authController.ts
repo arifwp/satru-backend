@@ -46,12 +46,10 @@ export const login = async (req: Request, res: Response) => {
     }
 
     if (user.status === 2) {
-      return res
-        .status(403)
-        .json({
-          status: false,
-          message: `Email ${user.email} telah di blokir admin`,
-        });
+      return res.status(403).json({
+        status: false,
+        message: `Email ${user.email} telah di blokir admin`,
+      });
     } else if (user.status === 3) {
       return res.status(200).json({
         status: true,
