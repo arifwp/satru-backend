@@ -2,6 +2,7 @@ import { Document, Types } from "mongoose";
 import { Product_Variant_Interface } from "./productVariantInterface";
 
 export interface Product_Interface extends Document {
+  outletId: Types.ObjectId;
   code?: string;
   name: string;
   description: string;

@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 import { Product_Interface } from "../interface/productInterface";
 
 const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
+  outletId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, "Outlet id harus diisi"],
+  },
   code: { type: String, unique: true, trim: true },
   name: { type: String, required: [true, "Nama Harus diisi"], trim: true },
   description: {
@@ -25,10 +29,6 @@ const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
   imageProduct: { type: String },
   variants: [
     {
-      variantId: {
-        type: mongoose.Schema.Types.ObjectId,
-        default: new mongoose.Types.ObjectId(),
-      },
       variantName: {
         type: String,
         required: [true, "Nama varian harus diisi"],

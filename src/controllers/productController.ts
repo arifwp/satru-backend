@@ -109,7 +109,6 @@ export const createProduct = async (req: Request, res: Response) => {
       stock: stock,
       variants: variants
         ? variants.map((variant: any) => ({
-            variantId: new mongoose.Types.ObjectId(),
             variantName: variant.variantName,
             variantPrice: variant.variantPrice,
             variantStock: variant.variantStock,
@@ -284,7 +283,6 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     product.variants = variants
       ? variants.map((variant: any) => ({
-          variantId: new mongoose.Types.ObjectId(),
           variantName: variant.variantName,
           variantPrice: variant.variantPrice,
           variantStock: variant.variantStock,
@@ -321,7 +319,11 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .json({ message: "Update data produk berhasil", data: updatedAll });
+      .json({
+        status: true,
+        message: "Update data produk berhasil",
+        data: updatedAll,
+      });
   } catch (error: any) {
     console.log("img nih", uploadImage);
     ResourceDataWithImage(
@@ -332,6 +334,66 @@ export const updateProduct = async (req: Request, res: Response) => {
       uploadImage,
       res
     );
+  }
+};
+
+export const detailProduct = async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+
+  const isIdValid = mongoose.Types.ObjectId.isValid(productId);
+  if (isIdValid) {
+    return res.status(400).json({ status: false, message: "Id tidak valid" });
+  }
+
+  try {
+    const product = await Product.findById({ _id: productId }).select("-__v");
+
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan detail produk",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const deleteProduct = async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+
+  const isIdValid = mongoose.Types.ObjectId.isValid(productId);
+  if (isIdValid) {
+    return res.status(400).json({ status: false, message: "Id tidak valid" });
+  }
+
+  try {
+    const product = await Product.findById({ _id: productId });
+    if (!product) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Produk tidak ditemukan" });
+    }
+
+    if (product.imageProduct) {
+      const imgPath = path.join(
+        __dirname,
+        "../../uploads/products",
+        product.imageProduct
+      );
+      try {
+        await fsPromises.unlink(imgPath);
+      } catch (error: any) {
+        return res.status(500).json({ status: false, message: error.message });
+      }
+    }
+
+    await Product.findByIdAndDelete(productId);
+
+    res
+      .status(200)
+      .json({ status: true, message: "Data produk berhasil dihapuss" });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
   }
 };
 

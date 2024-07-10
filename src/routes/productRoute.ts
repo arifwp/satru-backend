@@ -3,6 +3,8 @@ import {
   createBrand,
   createCategory,
   createProduct,
+  deleteProduct,
+  detailProduct,
   updateProduct,
 } from "../controllers/productController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
@@ -22,6 +24,14 @@ productRouter.put(
   authMiddlewware,
   configUploadProductImages,
   updateProduct
+);
+
+productRouter.get("/detailProduct/:productId", authMiddlewware, detailProduct);
+
+productRouter.delete(
+  "/deleteProduct/:productId",
+  authMiddlewware,
+  deleteProduct
 );
 
 // CATEGORY
