@@ -3,6 +3,7 @@ import bcryptjs from "bcryptjs";
 import User from "../models/userModel";
 import { createToken } from "../utils/jwt";
 import mongoose from "mongoose";
+import Outlet from "../models/outletModel";
 
 export const register = async (req: Request, res: Response) => {
   const { name, email, phone, password, owner, bornDate } = req.body;
@@ -23,7 +24,7 @@ export const register = async (req: Request, res: Response) => {
     await newUser.save();
     res.status(201).json({ message: "Pendaftaran berhasil" });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -65,9 +66,16 @@ export const login = async (req: Request, res: Response) => {
       token: token,
     };
 
-    const updateUser = await User.findByIdAndUpdate(user._id, update, {
+    const dataUser = await User.findByIdAndUpdate(user._id, update, {
       new: true,
     }).select("-password");
+
+    const outlet = await Outlet.find({ ownerId: user._id });
+
+    const finalRes = {
+      dataUser,
+      outlet,
+    };
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -79,10 +87,10 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({
       status: true,
       message: "Login berhasil",
-      data: updateUser,
+      data: finalRes,
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
