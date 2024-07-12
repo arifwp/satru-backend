@@ -317,13 +317,11 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     const updatedAll = await product.save();
 
-    res
-      .status(200)
-      .json({
-        status: true,
-        message: "Update data produk berhasil",
-        data: updatedAll,
-      });
+    res.status(200).json({
+      status: true,
+      message: "Update data produk berhasil",
+      data: updatedAll,
+    });
   } catch (error: any) {
     console.log("img nih", uploadImage);
     ResourceDataWithImage(
@@ -400,10 +398,11 @@ export const deleteProduct = async (req: Request, res: Response) => {
 // CATEGORY
 
 export const createCategory = async (req: Request, res: Response) => {
-  const { name } = req.body;
+  const { name, ownerId } = req.body;
 
   try {
     const newCategory = new Category({
+      ownerId: ownerId,
       name: name,
       isDeleted: 0,
       createdAt: Date.now(),
@@ -415,6 +414,21 @@ export const createCategory = async (req: Request, res: Response) => {
       .json({ message: "Berhasil menambahkan kategori", data: category });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAllCategory = async (req: Request, res: Response) => {
+  const ownerId = req.params.ownerId;
+
+  try {
+    const category = await Category.find({ isDeleted: 0, ownerId: ownerId });
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan semua data kategori",
+      data: category,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, error: error.message });
   }
 };
 
