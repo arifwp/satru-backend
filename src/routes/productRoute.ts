@@ -5,6 +5,7 @@ import {
   createProduct,
   deleteProduct,
   detailProduct,
+  getAllCategory,
   updateProduct,
 } from "../controllers/productController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
@@ -36,6 +37,7 @@ productRouter.delete(
 
 // CATEGORY
 productRouter.post("/createCategory", authMiddlewware, createCategory);
+productRouter.get("/getAllCategory/:ownerId", authMiddlewware, getAllCategory);
 
 // BRAND
 productRouter.post("/createBrand", authMiddlewware, createBrand);

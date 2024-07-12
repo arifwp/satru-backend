@@ -4,6 +4,10 @@ import { Category_Interface } from "../interface/categoryInterface";
 
 const CategorySchema: Schema<Category_Interface> =
   new Schema<Category_Interface>({
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "Outlet id harus diisi"],
+    },
     name: {
       type: String,
       required: [true, "Nama kategori harus diisi"],
