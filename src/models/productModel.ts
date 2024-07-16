@@ -1,9 +1,13 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import { Product_Interface } from "../interface/productInterface";
 
 const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
-  outletId: {
+  ownerId: {
     type: mongoose.Schema.Types.ObjectId,
+    required: [true, "Owner id harus diisi"],
+  },
+  outletId: {
+    type: [],
     required: [true, "Outlet id harus diisi"],
   },
   code: { type: String, unique: true, trim: true },
@@ -64,7 +68,7 @@ const ProductSchema: Schema<Product_Interface> = new Schema<Product_Interface>({
 ProductSchema.post("save", function (error: any, doc: any, next: any) {
   if (error.code === 11000) {
     if (error.keyPattern.code) {
-      next(new Error("Kode produk sudah dipakai"));
+      next(new Error("Kode produk sudah digunakan"));
     } else {
       next(error);
     }

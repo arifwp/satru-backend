@@ -5,7 +5,9 @@ import {
   createProduct,
   deleteProduct,
   detailProduct,
+  getAllBrand,
   getAllCategory,
+  getAllProduct,
   updateProduct,
 } from "../controllers/productController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
@@ -28,6 +30,11 @@ productRouter.put(
 );
 
 productRouter.get("/detailProduct/:productId", authMiddlewware, detailProduct);
+productRouter.get(
+  "/getAllProduct/:ownerId/:outletIds?/:categoryIds?",
+  authMiddlewware,
+  getAllProduct
+);
 
 productRouter.delete(
   "/deleteProduct/:productId",
@@ -41,5 +48,6 @@ productRouter.get("/getAllCategory/:ownerId", authMiddlewware, getAllCategory);
 
 // BRAND
 productRouter.post("/createBrand", authMiddlewware, createBrand);
+productRouter.get("/getAllBrand/:ownerId", authMiddlewware, getAllBrand);
 
 export default productRouter;

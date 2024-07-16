@@ -373,6 +373,41 @@ export const detailProduct = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllProduct = async (req: Request, res: Response) => {
+  const { ownerId, outletIds, categoryIds } = req.params;
+  let query: any = { ownerId: ownerId };
+
+  try {
+    const products = await Product.find({ ownerId: ownerId });
+    if (!outletIds) {
+      return res.status(200).json({
+        status: true,
+        message: "Berhasil menampilkan data",
+        data: products,
+      });
+    }
+
+    if (outletIds) {
+      const ids = outletIds.split(",");
+      query.outletId = { $in: ids };
+    }
+
+    if (categoryIds) {
+      const ctgIds = categoryIds.split(",");
+      query.categoryId = ctgIds;
+    }
+
+    const product = await Product.find(query).exec();
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan data",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
 export const deleteProduct = async (req: Request, res: Response) => {
   const productId = req.params.productId;
 
