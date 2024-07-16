@@ -124,6 +124,33 @@ export const detailOutlet = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllOutlet = async (req: Request, res: Response) => {
+  const ownerId = req.params.ownerId;
+  if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Owner id tidak valid" });
+  }
+
+  try {
+    const outlet = await Outlet.find({ isDeleted: 0, ownerId: ownerId });
+
+    if (!outlet) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Tidak ada data outlet" });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan data semua outlet",
+      data: outlet,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
 export const deleteOutlet = async (req: Request, res: Response) => {
   const outletId = req.params.outletId;
   if (!mongoose.Types.ObjectId.isValid(outletId)) {

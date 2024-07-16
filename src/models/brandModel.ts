@@ -4,6 +4,10 @@ import { Category_Interface } from "../interface/categoryInterface";
 import { Brand_Interface } from "../interface/brandInterface";
 
 const BrandSchema: Schema<Brand_Interface> = new Schema<Brand_Interface>({
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, "Owner id harus diisi"],
+  },
   name: {
     type: String,
     required: [true, "Nama merk harus diisi"],
