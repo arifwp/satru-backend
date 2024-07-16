@@ -9,6 +9,8 @@ import {
   getAllCategory,
   getAllProduct,
   updateProduct,
+  getAllProductByCategory,
+  getAllProductByOutlet,
 } from "../controllers/productController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
 import { configUploadProductImages } from "../middlewares/uploadMiddleware";
@@ -30,10 +32,18 @@ productRouter.put(
 );
 
 productRouter.get("/detailProduct/:productId", authMiddlewware, detailProduct);
+productRouter.get("/getAllProduct/:ownerId", authMiddlewware, getAllProduct);
+
 productRouter.get(
-  "/getAllProduct/:ownerId/:outletIds?/:categoryIds?",
+  "/getAllProductByOutlet/:ownerId/:outletIds",
   authMiddlewware,
-  getAllProduct
+  getAllProductByOutlet
+);
+
+productRouter.get(
+  "/getAllProductByCategory/:ownerId/:outletIds/:categoryIds?",
+  authMiddlewware,
+  getAllProductByCategory
 );
 
 productRouter.delete(

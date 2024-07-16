@@ -374,6 +374,43 @@ export const detailProduct = async (req: Request, res: Response) => {
 };
 
 export const getAllProduct = async (req: Request, res: Response) => {
+  const { ownerId } = req.params;
+  let query: any = { ownerId: ownerId };
+
+  try {
+    const product = await Product.find({ ownerId: ownerId }).exec();
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan data",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const getAllProductByOutlet = async (req: Request, res: Response) => {
+  const { ownerId, outletIds } = req.params;
+  let query: any = { ownerId: ownerId };
+
+  try {
+    query.ownerId = ownerId;
+    const ids = outletIds.split(",");
+
+    query.outletId = { $in: ids };
+
+    const product = await Product.find(query).exec();
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan data",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const getAllProductByCategory = async (req: Request, res: Response) => {
   const { ownerId, outletIds, categoryIds } = req.params;
   let query: any = { ownerId: ownerId };
 
