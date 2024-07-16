@@ -14,6 +14,8 @@ const fsPromises = fs.promises;
 // PRODUCT
 export const createProduct = async (req: Request, res: Response) => {
   const {
+    ownerId,
+    outletId,
     code,
     name,
     description,
@@ -71,9 +73,22 @@ export const createProduct = async (req: Request, res: Response) => {
 
   try {
     const getCategory = await Category.findById({ _id: categoryId });
+    const findProduct = await Product.findOne({ code: code });
+
     let getBrand;
     if (brandId) {
       getBrand = await Brand.findById({ _id: brandId });
+    }
+
+    if (!!findProduct) {
+      return ResourceDataWithImage(
+        false,
+        400,
+        "Kode produk sudah dipakai",
+        "../../uploads/products",
+        imageProduct,
+        res
+      );
     }
 
     if (!getCategory) {
@@ -101,6 +116,8 @@ export const createProduct = async (req: Request, res: Response) => {
     }
 
     let addNew = {
+      ownerId: ownerId,
+      outletId: outletId,
       code: code,
       name: name,
       description: description,
@@ -409,11 +426,13 @@ export const createCategory = async (req: Request, res: Response) => {
     });
 
     const category = await newCategory.save();
-    res
-      .status(201)
-      .json({ message: "Berhasil menambahkan kategori", data: category });
+    res.status(201).json({
+      status: true,
+      message: "Berhasil menambahkan kategori",
+      data: category,
+    });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ status: false, message: error.message });
   }
 };
 
@@ -428,25 +447,45 @@ export const getAllCategory = async (req: Request, res: Response) => {
       data: category,
     });
   } catch (error: any) {
-    res.status(500).json({ status: false, error: error.message });
+    res.status(500).json({ status: false, message: error.message });
   }
 };
 
 // BRAND
 
 export const createBrand = async (req: Request, res: Response) => {
-  const { name } = req.body;
+  const { name, ownerId } = req.body;
 
   try {
     const newBrand = new Brand({
+      ownerId: ownerId,
       name: name,
       isDeleted: 0,
       createdAt: Date.now(),
     });
 
     const brand = await newBrand.save();
-    res.status(201).json({ message: "Berhasil menambahkan merk", data: brand });
+    res.status(201).json({
+      status: true,
+      message: "Berhasil menambahkan merk",
+      data: brand,
+    });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const getAllBrand = async (req: Request, res: Response) => {
+  const ownerId = req.params.ownerId;
+
+  try {
+    const brand = await Brand.find({ isDeleted: 0, ownerId: ownerId });
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan semua data merk",
+      data: brand,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
   }
 };
