@@ -167,7 +167,7 @@ export const deleteOutlet = async (req: Request, res: Response) => {
         .json({ status: false, message: "Outlet tidak ditemukan" });
     }
 
-    if (outlet.isDeleted === 1) {
+    if (outlet.isDeleted !== 0) {
       return res
         .status(400)
         .json({ status: false, message: "Outlet anda di nonaktifkan" });
