@@ -11,6 +11,7 @@ import outletRouter from "./routes/outletRoute";
 import typeOutletRouter from "./routes/typeOutletRoute";
 import cors from "cors";
 import brandRouter from "./routes/brandRoute";
+import categoryRouter from "./routes/categoryRoute";
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use("/api/v1/product", productRouter);
 app.use("/api/v1/outlet", outletRouter);
 app.use("/api/v1/typeOutlet", typeOutletRouter);
 app.use("/api/v1/brand", brandRouter);
+app.use("/api/v1/category", categoryRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
