@@ -1,10 +1,8 @@
 import express from "express";
 import {
-  createCategory,
   createProduct,
   deleteProduct,
   detailProduct,
-  getAllCategory,
   getAllProduct,
   updateProduct,
   getAllProductByCategory,
@@ -56,9 +54,5 @@ productRouter.delete(
   authMiddlewware,
   deleteProduct
 );
-
-// CATEGORY
-productRouter.post("/createCategory", authMiddlewware, createCategory);
-productRouter.get("/getAllCategory/:ownerId", authMiddlewware, getAllCategory);
 
 export default productRouter;
