@@ -1,11 +1,9 @@
 import express from "express";
 import {
-  createBrand,
   createCategory,
   createProduct,
   deleteProduct,
   detailProduct,
-  getAllBrand,
   getAllCategory,
   getAllProduct,
   updateProduct,
@@ -62,9 +60,5 @@ productRouter.delete(
 // CATEGORY
 productRouter.post("/createCategory", authMiddlewware, createCategory);
 productRouter.get("/getAllCategory/:ownerId", authMiddlewware, getAllCategory);
-
-// BRAND
-productRouter.post("/createBrand", authMiddlewware, createBrand);
-productRouter.get("/getAllBrand/:ownerId", authMiddlewware, getAllBrand);
 
 export default productRouter;

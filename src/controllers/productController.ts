@@ -386,10 +386,43 @@ export const getAllProduct = async (req: Request, res: Response) => {
   const { ownerId } = req.params;
 
   try {
-    const product = await Product.find({
-      ownerId: ownerId,
-      isDeleted: 0,
-    }).exec();
+    // const product = await Product.find({
+    //   ownerId: ownerId,
+    //   isDeleted: 0,
+    // }).exec();
+
+    const product = await Product.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          isDeleted: 0,
+          categoryId: { $exists: true, $not: { $size: 0 } },
+        },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+    ]);
+
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
@@ -405,12 +438,44 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
   let query: any = { ownerId: ownerId, isDeleted: 0 };
 
   try {
-    query.ownerId = ownerId;
     const ids = outletIds.split(",");
+    const product = await Product.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          outletId: { $in: ids },
+          isDeleted: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+    ]);
+    // query.ownerId = ownerId;
+    // const ids = outletIds.split(",");
 
-    query.outletId = { $in: ids };
+    // query.outletId = { $in: ids };
 
-    const product = await Product.find(query).exec();
+    // const product = await Product.find(query).exec();
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
@@ -422,14 +487,48 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
 };
 
 export const getAllProductByCategory = async (req: Request, res: Response) => {
-  const { ownerId, outletIds, categoryIds } = req.params;
+  const { ownerId, categoryIds } = req.params;
   let query: any = { ownerId: ownerId, isDeleted: 0 };
 
   try {
-    const ctgIds = categoryIds.split(",");
-    query.categoryId = ctgIds;
+    const ids = categoryIds.split(",");
 
-    const product = await Product.find(query).exec();
+    const product = await Product.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          categoryId: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) },
+          isDeleted: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+    ]);
+    // const ctgIds = categoryIds.split(",");
+    // query.categoryId = ctgIds;
+
+    // const product = await Product.find(query).exec();
+
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
@@ -448,26 +547,64 @@ export const getAllProductByOutletCategory = async (
   let query: any = { ownerId: ownerId, isDeleted: 0 };
 
   try {
-    const products = await Product.find({ ownerId: ownerId, isDeleted: 0 });
-    if (!outletIds) {
-      return res.status(200).json({
-        status: true,
-        message: "Berhasil menampilkan data",
-        data: products,
-      });
-    }
+    const outlets = outletIds.split(",");
+    const categorys = categoryIds.split(",");
 
-    if (outletIds) {
-      const ids = outletIds.split(",");
-      query.outletId = { $in: ids };
-    }
+    const product = await Product.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          outletId: { $in: outlets },
+          categoryId: {
+            $in: categorys.map((ctgId) => new mongoose.Types.ObjectId(ctgId)),
+          },
+          isDeleted: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+    ]);
 
-    if (categoryIds) {
-      const ctgIds = categoryIds.split(",");
-      query.categoryId = ctgIds;
-    }
+    // const products = await Product.find({ ownerId: ownerId, isDeleted: 0 });
+    // if (!outletIds) {
+    //   return res.status(200).json({
+    //     status: true,
+    //     message: "Berhasil menampilkan data",
+    //     data: products,
+    //   });
+    // }
 
-    const product = await Product.find(query).exec();
+    // if (outletIds) {
+    //   const ids = outletIds.split(",");
+    //   query.outletId = { $in: ids };
+    // }
+
+    // if (categoryIds) {
+    //   const ctgIds = categoryIds.split(",");
+    //   query.categoryId = ctgIds;
+    // }
+
+    // const product = await Product.find(query).exec();
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
@@ -554,45 +691,6 @@ export const getAllCategory = async (req: Request, res: Response) => {
       status: true,
       message: "Berhasil menampilkan semua data kategori",
       data: category,
-    });
-  } catch (error: any) {
-    res.status(500).json({ status: false, message: error.message });
-  }
-};
-
-// BRAND
-
-export const createBrand = async (req: Request, res: Response) => {
-  const { name, ownerId } = req.body;
-
-  try {
-    const newBrand = new Brand({
-      ownerId: ownerId,
-      name: name,
-      isDeleted: 0,
-      createdAt: Date.now(),
-    });
-
-    const brand = await newBrand.save();
-    res.status(201).json({
-      status: true,
-      message: "Berhasil menambahkan merk",
-      data: brand,
-    });
-  } catch (error: any) {
-    res.status(500).json({ status: false, message: error.message });
-  }
-};
-
-export const getAllBrand = async (req: Request, res: Response) => {
-  const ownerId = req.params.ownerId;
-
-  try {
-    const brand = await Brand.find({ isDeleted: 0, ownerId: ownerId });
-    res.status(200).json({
-      status: true,
-      message: "Berhasil menampilkan semua data merk",
-      data: brand,
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
