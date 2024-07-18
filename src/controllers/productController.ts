@@ -361,7 +361,16 @@ export const detailProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    const product = await Product.findById({ _id: productId }).select("-__v");
+    const product = await Product.find({ _id: productId, isDeleted: 0 }).select(
+      "-__v"
+    );
+
+    if (!product) {
+      return res.status(400).json({
+        status: false,
+        message: "Produk tidak ditemukan",
+      });
+    }
 
     res.status(200).json({
       status: true,
@@ -375,10 +384,12 @@ export const detailProduct = async (req: Request, res: Response) => {
 
 export const getAllProduct = async (req: Request, res: Response) => {
   const { ownerId } = req.params;
-  let query: any = { ownerId: ownerId };
 
   try {
-    const product = await Product.find({ ownerId: ownerId }).exec();
+    const product = await Product.find({
+      ownerId: ownerId,
+      isDeleted: 0,
+    }).exec();
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
@@ -391,7 +402,7 @@ export const getAllProduct = async (req: Request, res: Response) => {
 
 export const getAllProductByOutlet = async (req: Request, res: Response) => {
   const { ownerId, outletIds } = req.params;
-  let query: any = { ownerId: ownerId };
+  let query: any = { ownerId: ownerId, isDeleted: 0 };
 
   try {
     query.ownerId = ownerId;
@@ -412,10 +423,32 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
 
 export const getAllProductByCategory = async (req: Request, res: Response) => {
   const { ownerId, outletIds, categoryIds } = req.params;
-  let query: any = { ownerId: ownerId };
+  let query: any = { ownerId: ownerId, isDeleted: 0 };
 
   try {
-    const products = await Product.find({ ownerId: ownerId });
+    const ctgIds = categoryIds.split(",");
+    query.categoryId = ctgIds;
+
+    const product = await Product.find(query).exec();
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan data",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const getAllProductByOutletCategory = async (
+  req: Request,
+  res: Response
+) => {
+  const { ownerId, outletIds, categoryIds } = req.params;
+  let query: any = { ownerId: ownerId, isDeleted: 0 };
+
+  try {
+    const products = await Product.find({ ownerId: ownerId, isDeleted: 0 });
     if (!outletIds) {
       return res.status(200).json({
         status: true,
@@ -449,12 +482,12 @@ export const deleteProduct = async (req: Request, res: Response) => {
   const productId = req.params.productId;
 
   const isIdValid = mongoose.Types.ObjectId.isValid(productId);
-  if (isIdValid) {
+  if (!isIdValid) {
     return res.status(400).json({ status: false, message: "Id tidak valid" });
   }
 
   try {
-    const product = await Product.findById({ _id: productId });
+    const product = await Product.findById({ _id: productId, isDeleted: 0 });
     if (!product) {
       return res
         .status(404)
@@ -474,7 +507,11 @@ export const deleteProduct = async (req: Request, res: Response) => {
       }
     }
 
-    await Product.findByIdAndDelete(productId);
+    // await Product.findByIdAndDelete(productId);
+    const update = { isDeleted: 1 };
+    await Product.findByIdAndUpdate(productId, update, {
+      new: true,
+    });
 
     res
       .status(200)
