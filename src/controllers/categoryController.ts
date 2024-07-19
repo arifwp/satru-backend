@@ -40,9 +40,11 @@ export const getAllCategory = async (req: Request, res: Response) => {
 
 export const deleteCategory = async (req: Request, res: Response) => {
   const { categoryId } = req.params;
+
   try {
-    const brand = await Category.find({ _id: categoryId, isDeleted: 0 });
-    if (!brand) {
+    const category = await Category.findOne({ _id: categoryId, isDeleted: 0 });
+
+    if (!category) {
       return res
         .status(400)
         .json({ status: false, message: "Kategori tidak ditemukan" });
@@ -50,7 +52,9 @@ export const deleteCategory = async (req: Request, res: Response) => {
 
     const update = { isDeleted: 1 };
 
-    await Category.findByIdAndUpdate(categoryId, update, { new: true });
+    await Category.findByIdAndUpdate(categoryId, update, {
+      new: true,
+    });
     res
       .status(200)
       .json({ status: true, message: "Berhasil menghapus kategori" });

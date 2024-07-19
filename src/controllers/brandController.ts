@@ -40,8 +40,10 @@ export const getAllBrand = async (req: Request, res: Response) => {
 
 export const deleteBrand = async (req: Request, res: Response) => {
   const { brandId } = req.params;
+
   try {
-    const brand = await Brand.find({ _id: brandId, isDeleted: 0 });
+    const brand = await Brand.findOne({ _id: brandId, isDeleted: 0 });
+
     if (!brand) {
       return res
         .status(400)
