@@ -356,14 +356,48 @@ export const detailProduct = async (req: Request, res: Response) => {
   const productId = req.params.productId;
 
   const isIdValid = mongoose.Types.ObjectId.isValid(productId);
-  if (isIdValid) {
+  if (!isIdValid) {
     return res.status(400).json({ status: false, message: "Id tidak valid" });
   }
 
   try {
-    const product = await Product.find({ _id: productId, isDeleted: 0 }).select(
-      "-__v"
-    );
+    // const product = await Product.find({ _id: productId, isDeleted: 0 }).select(
+    //   "-__v"
+    // );
+
+    const product = await Product.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(productId),
+          isDeleted: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $limit: 1,
+      },
+    ]);
 
     if (!product) {
       return res.status(400).json({
@@ -375,7 +409,7 @@ export const detailProduct = async (req: Request, res: Response) => {
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan detail produk",
-      data: product,
+      data: product.length > 0 ? product[0] : [],
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
@@ -386,11 +420,6 @@ export const getAllProduct = async (req: Request, res: Response) => {
   const { ownerId } = req.params;
 
   try {
-    // const product = await Product.find({
-    //   ownerId: ownerId,
-    //   isDeleted: 0,
-    // }).exec();
-
     const product = await Product.aggregate([
       {
         $match: {
