@@ -1,7 +1,6 @@
 
 ### Backend Repository for SATRU
 
-```markdown
 # SATRU Backend
 
 Welcome to the backend repository of **SATRU (Sistem Administrasi Transaksi Retail Unggul)**. This project provides a robust and scalable backend infrastructure for managing retail transactions.
