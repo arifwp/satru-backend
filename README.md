@@ -33,5 +33,4 @@ npm install
 
 Then, start the development server:
 
-```bash
 npm run dev
