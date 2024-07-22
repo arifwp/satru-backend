@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
 import fs from "fs";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import path from "path";
 import Brand from "../models/brandModel";
 import Category from "../models/categoryModel";
 import Product from "../models/productModel";
 import { ResourceDataWithImage } from "../utils/resource";
-import { Product_Interface } from "../interface/productInterface";
-import { Product_Variant_Interface } from "../interface/productVariantInterface";
 
 const fsPromises = fs.promises;
 
@@ -115,6 +113,9 @@ export const createProduct = async (req: Request, res: Response) => {
       }
     }
 
+    const parsedVariants = variants && JSON.parse(variants);
+    console.log("parsedVariants", parsedVariants);
+
     let addNew = {
       ownerId: ownerId,
       outletId: outletId,
@@ -125,7 +126,7 @@ export const createProduct = async (req: Request, res: Response) => {
       categoryId: categoryId,
       stock: stock,
       variants: variants
-        ? variants.map((variant: any) => ({
+        ? parsedVariants.map((variant: any) => ({
             variantName: variant.variantName,
             variantPrice: variant.variantPrice,
             variantStock: variant.variantStock,
@@ -152,7 +153,7 @@ export const createProduct = async (req: Request, res: Response) => {
     const newProduct = new Product(addNew);
 
     const product = await newProduct.save();
-
+    console.log(product);
     res
       .status(201)
       .json({ message: "Berhasil menambahkan produk", data: product });
