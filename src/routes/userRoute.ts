@@ -3,6 +3,8 @@ import {
   deleteUser,
   getDetailUser,
   updateUser,
+  confirmEmailChange,
+  changeEmail,
 } from "../controllers/userController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
 import { configUploadAvatar } from "../middlewares/uploadMiddleware";
@@ -16,6 +18,8 @@ userRoute.put(
   configUploadAvatar,
   updateUser
 );
+userRoute.post("/confirmEmailChange", authMiddlewware, confirmEmailChange);
+userRoute.put("/changeEmail", authMiddlewware, changeEmail);
 userRoute.delete("/deleteUser/:userId", authMiddlewware, deleteUser);
 
 export default userRoute;
