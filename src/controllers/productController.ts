@@ -6,6 +6,7 @@ import Brand from "../models/brandModel";
 import Category from "../models/categoryModel";
 import Product from "../models/productModel";
 import { ResourceDataWithImage } from "../utils/resource";
+import Outlet from "../models/outletModel";
 
 const fsPromises = fs.promises;
 
@@ -114,7 +115,6 @@ export const createProduct = async (req: Request, res: Response) => {
     }
 
     const parsedVariants = variants && JSON.parse(variants);
-    console.log("parsedVariants", parsedVariants);
 
     let addNew = {
       ownerId: ownerId,
@@ -171,6 +171,8 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
   const {
+    ownerId,
+    outletId,
     code,
     name,
     description,
@@ -241,9 +243,25 @@ export const updateProduct = async (req: Request, res: Response) => {
 
   try {
     const getCategory = await Category.findById({ _id: categoryId });
+    const findProduct = await Product.find({
+      _id: productId,
+      code: { $ne: code },
+    });
+
     let getBrand;
     if (brandId) {
       getBrand = await Brand.findById({ _id: brandId });
+    }
+
+    if (findProduct.length > 1) {
+      return ResourceDataWithImage(
+        false,
+        400,
+        "Kode produk sudah dipakai",
+        "../../uploads/products",
+        uploadImage,
+        res
+      );
     }
 
     if (!getCategory) {
@@ -299,8 +317,10 @@ export const updateProduct = async (req: Request, res: Response) => {
       product.minimumStock = minimumStock;
     }
 
+    const parsedVariants = variants && JSON.parse(variants);
+
     product.variants = variants
-      ? variants.map((variant: any) => ({
+      ? parsedVariants.map((variant: any) => ({
           variantName: variant.variantName,
           variantPrice: variant.variantPrice,
           variantStock: variant.variantStock,
@@ -362,16 +382,23 @@ export const detailProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    // const product = await Product.find({ _id: productId, isDeleted: 0 }).select(
-    //   "-__v"
-    // );
-
     const product = await Product.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(productId),
           isDeleted: 0,
         },
+      },
+      {
+        $lookup: {
+          from: "categorys",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
       },
       {
         $lookup: {
@@ -400,12 +427,32 @@ export const detailProduct = async (req: Request, res: Response) => {
       },
     ]);
 
-    if (!product) {
+    if (product.length === 0) {
       return res.status(400).json({
         status: false,
         message: "Produk tidak ditemukan",
       });
     }
+
+    let ids;
+    const defineIds = product.map((item: any, _: any) => (ids = item.outletId));
+    const outletIds = ids && (ids as string).toString().split(",");
+    const outlet = await Outlet.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(product[0].ownerId),
+          _id: {
+            $in:
+              outletIds &&
+              (outletIds as []).map(
+                (id: any) => new mongoose.Types.ObjectId(id)
+              ),
+          },
+        },
+      },
+    ]);
+
+    Object.assign(product[0], { outlet: outlet });
 
     res.status(200).json({
       status: true,
@@ -500,12 +547,7 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
         $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
       },
     ]);
-    // query.ownerId = ownerId;
-    // const ids = outletIds.split(",");
 
-    // query.outletId = { $in: ids };
-
-    // const product = await Product.find(query).exec();
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
