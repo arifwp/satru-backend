@@ -4,18 +4,24 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts"
+    "dev": "nodemon src/server.ts",
+    "stop": "Taskkill /IM node.exe /F"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/moment": "^2.13.0",
+    "@types/moment-timezone": "^0.5.30",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "googleapis": "^140.0.1",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
     "mongoose": "^8.4.4",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.14",
