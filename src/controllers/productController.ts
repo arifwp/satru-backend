@@ -351,6 +351,26 @@ export const updateProduct = async (req: Request, res: Response) => {
         }
       }
       product.imageProduct = uploadImage;
+    } else {
+      if (product.imageProduct) {
+        const oldImagePath = path.join(
+          __dirname,
+          "../../uploads/products",
+          product.imageProduct
+        );
+
+        if (fs.existsSync(oldImagePath)) {
+          try {
+            await fsPromises.unlink(oldImagePath);
+            product.imageProduct = uploadImage;
+          } catch (error: any) {
+            return res.status(500).json({ message: error.message });
+          }
+        } else {
+          product.imageProduct = uploadImage;
+        }
+      }
+      product.imageProduct = uploadImage;
     }
 
     const updatedAll = await product.save();
