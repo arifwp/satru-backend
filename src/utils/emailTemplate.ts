@@ -1,8 +1,13 @@
-export const changeEmailTemplateMessage = (name: string, otpCode: number) => `
+export const changeEmailTemplateMessage = (
+  name: string,
+  otpCode: number,
+  formattedDate: string
+) => `
   <div>
     <h1>Haii, ${name}!</h1>
     <p>Masukkan kode otp dibawah ini untuk mengganti email anda!</p>
     <p>${otpCode}</p>
+    <p>Kode anda akan expired dalam ${formattedDate}</p>
   </div>
 `;
 

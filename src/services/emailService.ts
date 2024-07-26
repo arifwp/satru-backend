@@ -1,11 +1,16 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class EmailService {
   private transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: "Gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

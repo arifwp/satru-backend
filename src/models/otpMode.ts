@@ -10,6 +10,14 @@ const OtpSchema: Schema<Otp_Interface> = new Schema<Otp_Interface>({
     type: Number,
     required: [true, "Kode otp harus diisi"],
   },
+  oldEmail: {
+    type: String,
+    required: [true, "Email lama harus diisi"],
+  },
+  newEmail: {
+    type: String,
+    required: [true, "Email baru harus diisi"],
+  },
   expiredAt: { type: Date, required: [true, "Waktu expired code harus diisi"] },
   createdAt: { type: Date, required: [true, "Tanggal dibuat harus diisi"] },
 });

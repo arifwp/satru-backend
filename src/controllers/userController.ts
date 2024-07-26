@@ -8,6 +8,8 @@ import User from "../models/userModel";
 import emailService from "../services/emailService";
 import { changeEmailTemplateMessage } from "../utils/emailTemplate";
 import { ResourceDataWithImage } from "../utils/resource";
+import moment from "moment";
+import "moment-timezone";
 
 const fsPromises = fs.promises;
 
@@ -130,6 +132,35 @@ export const updateUser = async (req: Request, res: Response) => {
         }
       }
       user.avatar = uploadAvatar;
+    } else {
+      if (user.avatar) {
+        const oldAvatarPath = path.join(
+          __dirname,
+          "../../uploads/users/avatars",
+          user.avatar
+        );
+
+        if (fs.existsSync(oldAvatarPath)) {
+          try {
+            await fsPromises.unlink(oldAvatarPath);
+            user.updatedAt = new Date(Date.now());
+            user.avatar = uploadAvatar;
+          } catch (error: any) {
+            return ResourceDataWithImage(
+              false,
+              500,
+              error.message,
+              "../../uploads/users/avatars",
+              uploadAvatar,
+              res
+            );
+          }
+        } else {
+          user.updatedAt = new Date(Date.now());
+          user.avatar = uploadAvatar;
+        }
+      }
+      user.avatar = uploadAvatar;
     }
 
     const updatedUser = await user.save();
@@ -151,6 +182,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const confirmEmailChange = async (req: Request, res: Response) => {
   const { userId, oldEmail, newEmail } = req.body;
+
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(402).json({ message: "Id user tidak valid" });
   }
@@ -161,21 +193,37 @@ export const confirmEmailChange = async (req: Request, res: Response) => {
       return res.status(402).json({ message: "User tidak ditemukan" });
     }
 
+    const findEmail = await User.findOne({ email: newEmail });
+    if (findEmail) {
+      return res.status(400).json({ message: "Email sudah digunakan" });
+    }
+
     const otpCode = Math.floor(1000 + Math.random() * 9000);
 
     // insert otp to db
-    new Otp({
+    const newOtp = new Otp({
       userId: userId,
       otpCode: otpCode,
+      oldEmail: oldEmail,
+      newEmail: newEmail,
       expiredAt: new Date(Date.now() + 5 * 60 * 1000),
       createdAt: Date.now(),
     });
+
+    await newOtp.save();
+
+    const convertDate: moment.Moment = moment(
+      new Date(Date.now() + 5 * 60 * 1000)
+    );
+    const timezone: string = "Asia/Jakarta";
+    const localizedDate: moment.Moment = convertDate.tz(timezone);
+    const formattedDate: string = localizedDate.format("YYYY-MM-DD HH:mm:ss");
 
     // send otp to email
     const emailResult = await emailService.sendEmail(
       oldEmail,
       "Ganti Email",
-      changeEmailTemplateMessage(user.name, otpCode)
+      changeEmailTemplateMessage(user.name, otpCode, formattedDate)
     );
 
     if (emailResult.statusSendEmail) {
@@ -196,22 +244,36 @@ export const confirmEmailChange = async (req: Request, res: Response) => {
 };
 
 export const changeEmail = async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { otpCode, newEmail } = req.body;
+  const { userId, otpCode, newEmail } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(402).json({ message: "Id user tidak valid" });
   }
 
   try {
-    const findOtp = await Otp.findOne({ otpCode: otpCode });
+    const findOtp = await Otp.findOne({ userId: userId, otpCode: otpCode })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
     if (!findOtp) {
       return res
         .status(400)
         .json({ message: "Kode otp yang anda masukkan tidak valid" });
     }
 
-    if (findOtp.createdAt > new Date()) {
+    if (otpCode !== findOtp.otpCode) {
+      return res.status(400).json({ message: "Kode otp tidak valid" });
+    }
+
+    if (newEmail !== findOtp.newEmail) {
+      return res
+        .status(400)
+        .json({ message: "Request email baru tidak ditemukan di database" });
+    }
+
+    console.log(findOtp.expiredAt);
+
+    if (new Date(findOtp.expiredAt) < new Date()) {
       return res.status(400).json({ message: "Kode otp anda sudah expired" });
     }
 
@@ -219,6 +281,9 @@ export const changeEmail = async (req: Request, res: Response) => {
     const updatedUser = await User.findByIdAndUpdate(userId, update, {
       new: true,
     }).select("-password -token -__v");
+
+    // delete otp
+    await Otp.deleteMany({ userId: userId });
 
     res.status(200).json({
       message: `Berhasil mengubah email ke ${newEmail}`,

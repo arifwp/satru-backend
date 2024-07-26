@@ -18,6 +18,7 @@ userRoute.put(
   configUploadAvatar,
   updateUser
 );
+
 userRoute.post("/confirmEmailChange", authMiddlewware, confirmEmailChange);
 userRoute.put("/changeEmail", authMiddlewware, changeEmail);
 userRoute.delete("/deleteUser/:userId", authMiddlewware, deleteUser);
