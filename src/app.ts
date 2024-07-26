@@ -35,19 +35,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
-// app.use(
-//   "/uploads/users/avatars",
-//   express.static(path.join(__dirname, "../uploads/users/avatars"))
-// );
-
-// app.use(
-//   "/uploads/products",
-//   express.static(path.join(__dirname, "../uploads/products"))
-// );
-
 app.use(
   "/uploads/products",
   express.static(path.join(__dirname, "../uploads/products"))
+);
+
+app.use(
+  "/uploads/users/avatars",
+  express.static(path.join(__dirname, "../uploads/users/avatars"))
 );
 
 // ROUTES
