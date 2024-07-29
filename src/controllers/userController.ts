@@ -1,15 +1,15 @@
 import bcryptjs from "bcryptjs";
 import { Request, Response } from "express";
 import fs from "fs";
+import moment from "moment";
+import "moment-timezone";
 import mongoose from "mongoose";
 import path from "path";
-import Otp from "../models/otpMode";
 import User from "../models/userModel";
 import emailService from "../services/emailService";
 import { changeEmailTemplateMessage } from "../utils/emailTemplate";
 import { ResourceDataWithImage } from "../utils/resource";
-import moment from "moment";
-import "moment-timezone";
+import OtpEmail from "../models/otpEmailModel";
 
 const fsPromises = fs.promises;
 
@@ -201,7 +201,7 @@ export const confirmEmailChange = async (req: Request, res: Response) => {
     const otpCode = Math.floor(1000 + Math.random() * 9000);
 
     // insert otp to db
-    const newOtp = new Otp({
+    const newOtp = new OtpEmail({
       userId: userId,
       otpCode: otpCode,
       oldEmail: oldEmail,
@@ -251,7 +251,7 @@ export const changeEmail = async (req: Request, res: Response) => {
   }
 
   try {
-    const findOtp = await Otp.findOne({ userId: userId, otpCode: otpCode })
+    const findOtp = await OtpEmail.findOne({ userId: userId, otpCode: otpCode })
       .sort({ createdAt: -1 })
       .limit(1);
 
@@ -283,7 +283,7 @@ export const changeEmail = async (req: Request, res: Response) => {
     }).select("-password -token -__v");
 
     // delete otp
-    await Otp.deleteMany({ userId: userId });
+    await OtpEmail.deleteMany({ userId: userId });
 
     res.status(200).json({
       message: `Berhasil mengubah email ke ${newEmail}`,
