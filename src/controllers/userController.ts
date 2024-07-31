@@ -5,11 +5,12 @@ import moment from "moment";
 import "moment-timezone";
 import mongoose from "mongoose";
 import path from "path";
+import OtpEmail from "../models/otpEmailModel";
+import OtpPhone from "../models/otpPhoneModel";
 import User from "../models/userModel";
 import emailService from "../services/emailService";
 import { changeEmailTemplateMessage } from "../utils/emailTemplate";
 import { ResourceDataWithImage } from "../utils/resource";
-import OtpEmail from "../models/otpEmailModel";
 
 const fsPromises = fs.promises;
 
@@ -244,7 +245,7 @@ export const confirmEmailChange = async (req: Request, res: Response) => {
 };
 
 export const changeEmail = async (req: Request, res: Response) => {
-  const { userId, otpCode, newEmail } = req.body;
+  const { userId, otpCode, newValue } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(402).json({ message: "Id user tidak valid" });
@@ -265,19 +266,17 @@ export const changeEmail = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Kode otp tidak valid" });
     }
 
-    if (newEmail !== findOtp.newEmail) {
+    if (newValue !== findOtp.newEmail) {
       return res
         .status(400)
         .json({ message: "Request email baru tidak ditemukan di database" });
     }
 
-    console.log(findOtp.expiredAt);
-
     if (new Date(findOtp.expiredAt) < new Date()) {
       return res.status(400).json({ message: "Kode otp anda sudah expired" });
     }
 
-    const update = { updatedAt: Date.now(), email: newEmail };
+    const update = { updatedAt: Date.now(), email: newValue };
     const updatedUser = await User.findByIdAndUpdate(userId, update, {
       new: true,
     }).select("-password -token -__v");
@@ -286,7 +285,7 @@ export const changeEmail = async (req: Request, res: Response) => {
     await OtpEmail.deleteMany({ userId: userId });
 
     res.status(200).json({
-      message: `Berhasil mengubah email ke ${newEmail}`,
+      message: `Berhasil mengubah email ke ${newValue}`,
       data: updatedUser,
     });
   } catch (error: any) {
@@ -294,10 +293,10 @@ export const changeEmail = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
-  const isObjectId = mongoose.Types.ObjectId.isValid(userId);
-  if (!isObjectId) {
+export const confirmWhatsappChange = async (req: Request, res: Response) => {
+  const { userId, oldWa, newWa } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(402).json({ message: "Id user tidak valid" });
   }
 
@@ -305,6 +304,148 @@ export const deleteUser = async (req: Request, res: Response) => {
     const user = await User.findById({ _id: userId });
     if (!user) {
       return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+
+    const findPhone = await User.findOne({ phone: newWa });
+    if (findPhone) {
+      return res.status(400).json({ message: "Nomor sudah digunakan" });
+    }
+
+    const otpCode = Math.floor(1000 + Math.random() * 9000);
+
+    // insert otp to db
+    const newOtp = new OtpPhone({
+      userId: userId,
+      otpCode: otpCode,
+      oldWa: oldWa,
+      newWa: newWa,
+      expiredAt: new Date(Date.now() + 5 * 60 * 1000),
+      createdAt: Date.now(),
+    });
+
+    await newOtp.save();
+
+    const convertDate: moment.Moment = moment(
+      new Date(Date.now() + 5 * 60 * 1000)
+    );
+    const timezone: string = "Asia/Jakarta";
+    const localizedDate: moment.Moment = convertDate.tz(timezone);
+    const formattedDate: string = localizedDate.format("YYYY-MM-DD HH:mm:ss");
+
+    // const waResult = await sendWhatsappMessage(
+    //   oldWa,
+    //   `Masukkan kode otp *${otpCode}* untuk mengganti email anda. Kode otp ini akan expired dalam ${formattedDate}`
+    // );
+    res.status(200).json({
+      status: true,
+      message: "Kami telah mengirimkan kode otp di whatsapp anda",
+      // data: waResult,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: true, message: error.message });
+  }
+};
+
+export const changeWhatsapp = async (req: Request, res: Response) => {
+  const { userId, otpCode, newValue } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(402).json({ message: "Id user tidak valid" });
+  }
+
+  try {
+    const findOtp = await OtpPhone.findOne({ userId: userId, otpCode: otpCode })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (!findOtp) {
+      return res.status(400).json({
+        status: false,
+        message: "Kode otp yang anda masukkan tidak valid",
+      });
+    }
+
+    if (otpCode !== findOtp.otpCode) {
+      return res.status(400).json({ message: "Kode otp tidak valid" });
+    }
+
+    if (newValue !== findOtp.newWa) {
+      return res.status(400).json({
+        message:
+          "Request ganti nomer whatsapp baru tidak ditemukan di database",
+      });
+    }
+
+    const update = { updatedAt: Date.now(), phone: newValue };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    }).select("-password -token -__v");
+
+    await OtpPhone.deleteMany({ userId: userId });
+
+    res.status(200).json({
+      status: true,
+      message: `Berhasil mengubah nomor whatsapp ke ${newValue}`,
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  const { userId, newPass, oldPass } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(404).json({ message: "Id user tidak valid" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: false, message: "User tidak ditemukan" });
+    }
+
+    const isPasswordValid = await bcryptjs.compare(oldPass, user.password);
+
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Password lama salah" });
+    }
+
+    const hashedPassword = await bcryptjs.hash(newPass, 8);
+    const update = { updatedAt: Date.now(), password: hashedPassword };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    }).select("-password -token -__v");
+    res.status(200).json({
+      status: true,
+      message: "Berhasil mengubah password",
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const isObjectId = mongoose.Types.ObjectId.isValid(userId);
+  if (!isObjectId) {
+    return res
+      .status(402)
+      .json({ status: false, message: "Id user tidak valid" });
+  }
+
+  try {
+    const user = await User.findById({ _id: userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: false, message: "User tidak ditemukan" });
     }
 
     if (user.avatar) {
@@ -316,14 +457,16 @@ export const deleteUser = async (req: Request, res: Response) => {
       try {
         await fsPromises.unlink(avatarPath);
       } catch (error: any) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ status: false, message: error.message });
       }
     }
 
     await User.findByIdAndDelete(userId);
 
-    res.status(200).json({ message: "Data user berhasil dihapuss" });
+    res
+      .status(200)
+      .json({ status: true, message: "Data user berhasil dihapuss" });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ status: false, message: error.message });
   }
 };

@@ -11,6 +11,19 @@ export const changeEmailTemplateMessage = (
   </div>
 `;
 
+export const changeWhatsappTemplateMessage = (
+  name: string,
+  otpCode: number,
+  formattedDate: string
+) => `
+  <div>
+    <h1>Haii, ${name}!</h1>
+    <p>Masukkan kode otp dibawah ini untuk mengganti nomor whatsapp anda!</p>
+    <p>${otpCode}</p>
+    <p>Kode anda akan expired dalam ${formattedDate}</p>
+  </div>
+`;
+
 export const resetPasswordEmail = (name: string, resetLink: string) => `
   <div>
     <h1>Hello, ${name}</h1>
