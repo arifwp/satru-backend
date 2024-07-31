@@ -1,0 +1,25 @@
+2024/07/31-15:07:46.193 2d38 Reusing MANIFEST D:\nodejs\satru-backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2024/07/31-15:07:46.194 2d38 Recovering log #340
+2024/07/31-15:07:46.211 2d38 Reusing old log D:\nodejs\satru-backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000340.log 
+2024/07/31-15:07:52.404 7d8 Level-0 table #351: started
+2024/07/31-15:07:52.423 7d8 Level-0 table #351: 129697 bytes OK
+2024/07/31-15:07:52.428 7d8 Delete type=0 #340
+2024/07/31-15:07:52.429 7d8 Manual compaction at level-0 from '\x004\x00\x00\x00' @ 72057594037927935 : 1 .. '\x005\x00\x00\x00' @ 0 : 0; will stop at (end)
+2024/07/31-15:07:54.929 2d38 Compacting 1@1 + 7@2 files
+2024/07/31-15:07:55.005 2d38 Generated table #352@1: 39808 keys, 2204630 bytes
+2024/07/31-15:07:55.045 2d38 Generated table #353@1: 3165 keys, 2161177 bytes
+2024/07/31-15:07:55.092 2d38 Generated table #354@1: 9352 keys, 2166352 bytes
+2024/07/31-15:07:55.180 2d38 Generated table #355@1: 33360 keys, 2255505 bytes
+2024/07/31-15:07:55.298 2d38 Generated table #356@1: 42857 keys, 2177374 bytes
+2024/07/31-15:07:55.575 2d38 Generated table #357@1: 106624 keys, 2259493 bytes
+2024/07/31-15:07:55.650 2d38 Generated table #358@1: 38006 keys, 804271 bytes
+2024/07/31-15:07:55.650 2d38 Compacted 1@1 + 7@2 files => 14028802 bytes
+2024/07/31-15:07:55.653 2d38 compacted to: files[ 0 0 7 0 0 0 0 ]
+2024/07/31-15:07:55.653 2d38 Delete type=2 #342
+2024/07/31-15:07:55.653 2d38 Delete type=2 #343
+2024/07/31-15:07:55.653 2d38 Delete type=2 #344
+2024/07/31-15:07:55.653 2d38 Delete type=2 #345
+2024/07/31-15:07:55.653 2d38 Delete type=2 #346
+2024/07/31-15:07:55.653 2d38 Delete type=2 #347
+2024/07/31-15:07:55.653 2d38 Delete type=2 #348
+2024/07/31-15:07:55.653 2d38 Delete type=2 #351
