@@ -4,9 +4,9 @@ import mongoose from "mongoose";
 import path from "path";
 import Brand from "../models/brandModel";
 import Category from "../models/categoryModel";
+import Outlet from "../models/outletModel";
 import Product from "../models/productModel";
 import { ResourceDataWithImage } from "../utils/resource";
-import Outlet from "../models/outletModel";
 
 const fsPromises = fs.promises;
 
@@ -153,7 +153,7 @@ export const createProduct = async (req: Request, res: Response) => {
     const newProduct = new Product(addNew);
 
     const product = await newProduct.save();
-    console.log(product);
+
     res
       .status(201)
       .json({ message: "Berhasil menambahkan produk", data: product });
@@ -182,6 +182,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     stock,
     minimumStock,
     variants,
+    changeImage,
   } = req.body;
 
   const productId = req.params.productId;
@@ -331,27 +332,50 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     await product.save();
 
-    if (uploadImage) {
-      if (product.imageProduct) {
-        const oldImagePath = path.join(
-          __dirname,
-          "../../uploads/products",
-          product.imageProduct
-        );
+    console.log(changeImage);
+    if (changeImage === "change") {
+      if (uploadImage) {
+        if (product.imageProduct) {
+          const oldImagePath = path.join(
+            __dirname,
+            "../../uploads/products",
+            product.imageProduct
+          );
 
-        if (fs.existsSync(oldImagePath)) {
-          try {
-            await fsPromises.unlink(oldImagePath);
+          if (fs.existsSync(oldImagePath)) {
+            try {
+              await fsPromises.unlink(oldImagePath);
+              product.imageProduct = uploadImage;
+            } catch (error: any) {
+              return res.status(500).json({ message: error.message });
+            }
+          } else {
             product.imageProduct = uploadImage;
-          } catch (error: any) {
-            return res.status(500).json({ message: error.message });
           }
-        } else {
-          product.imageProduct = uploadImage;
         }
+        product.imageProduct = uploadImage;
+      } else {
+        if (product.imageProduct) {
+          const oldImagePath = path.join(
+            __dirname,
+            "../../uploads/products",
+            product.imageProduct
+          );
+
+          if (fs.existsSync(oldImagePath)) {
+            try {
+              await fsPromises.unlink(oldImagePath);
+              product.imageProduct = uploadImage;
+            } catch (error: any) {
+              return res.status(500).json({ message: error.message });
+            }
+          } else {
+            product.imageProduct = uploadImage;
+          }
+        }
+        product.imageProduct = uploadImage;
       }
-      product.imageProduct = uploadImage;
-    } else {
+    } else if (changeImage === "delete") {
       if (product.imageProduct) {
         const oldImagePath = path.join(
           __dirname,
