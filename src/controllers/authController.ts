@@ -1,19 +1,32 @@
-import { Request, Response } from "express";
 import bcryptjs from "bcryptjs";
-import User from "../models/userModel";
-import { createToken } from "../utils/jwt";
+import dotenv from "dotenv";
+import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Outlet from "../models/outletModel";
+import User from "../models/userModel";
+import emailService from "../services/emailService";
+import { confirmEmailRegistration } from "../utils/emailTemplate";
+import { createToken } from "../utils/jwt";
+
+dotenv.config();
 
 export const register = async (req: Request, res: Response) => {
   const { name, email, phone, password, owner, bornDate } = req.body;
   const hashedPassword = await bcryptjs.hash(password, 8);
+  const hashedEmail = await bcryptjs.hash(email, 8);
+  const finalPhone = `62${phone}`;
+
+  if (phone[0] !== "8") {
+    return res
+      .status(400)
+      .json({ status: false, message: "Format nomor whatsapp salah" });
+  }
 
   try {
     const newUser = new User({
       name: name,
       email: email,
-      phone: phone,
+      phone: finalPhone,
       password: hashedPassword,
       owner: owner,
       bornDate: bornDate,
@@ -22,7 +35,28 @@ export const register = async (req: Request, res: Response) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: "Pendaftaran berhasil" });
+
+    const url = `${process.env.EMAIL_USER}/emailConfirmation/${hashedEmail}`;
+
+    const emailResult = await emailService.sendEmail(
+      email,
+      "Ganti Email",
+      confirmEmailRegistration(name, url)
+    );
+
+    if (emailResult.statusSendEmail) {
+      res.status(201).json({
+        status: true,
+        message:
+          "Kami telah mengirim link aktivasi ke email anda, periksa spam/kotak masuk email anda",
+      });
+    } else {
+      res.status(500).json({
+        status: true,
+        message: "Pendaftaran gagal, coba lagi nanti",
+        data: emailResult.error,
+      });
+    }
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

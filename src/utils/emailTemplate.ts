@@ -11,6 +11,14 @@ export const changeEmailTemplateMessage = (
   </div>
 `;
 
+export const confirmEmailRegistration = (name: string, url: string) => `
+  <div>
+    <h1>Haii, ${name}!</h1>
+    <p>Silahkan klik link berikut ini untuk mengaktifkan akun anda</p>
+    <p>${url}</p>
+  </div>
+`;
+
 export const changeWhatsappTemplateMessage = (
   name: string,
   otpCode: number,
