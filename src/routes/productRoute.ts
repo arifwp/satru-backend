@@ -21,7 +21,8 @@ productRouter.post(
   configUploadProductImages,
   createProduct
 );
-productRouter.put(
+
+productRouter.post(
   "/updateProduct/:productId",
   authMiddlewware,
   configUploadProductImages,
