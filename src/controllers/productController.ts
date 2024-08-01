@@ -332,7 +332,6 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     await product.save();
 
-    console.log(changeImage);
     if (changeImage === "change") {
       if (uploadImage) {
         if (product.imageProduct) {
