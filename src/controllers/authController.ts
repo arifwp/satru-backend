@@ -150,8 +150,50 @@ export const logout = async (req: Request, res: Response) => {
 
     res.cookie("jwt", "", { maxAge: 1 });
 
-    res.status(200).json({ message: "Logout berhasil" });
+    res.status(200).json({ status: true, message: "Logout berhasil" });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const accountVerification = async (req: Request, res: Response) => {
+  const { userId, hashedEmail } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Id user tidak valid" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: false, message: "User tidak ditemukan" });
+    }
+
+    const isEmailValid = await bcryptjs.compare(hashedEmail, user.email);
+
+    if (!isEmailValid) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Email user tidak valid" });
+    }
+
+    const update = { isVerified: 1, updatedAt: Date.now() };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    });
+
+    res
+      .status(200)
+      .json({
+        status: true,
+        message: `Akun ${user.email} telah aktif sepenuhnya`,
+        data: updatedUser,
+      });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
   }
 };
