@@ -34,13 +34,13 @@ export const register = async (req: Request, res: Response) => {
       created_at: Date.now(),
     });
 
-    await newUser.save();
+    const saveUser = await newUser.save();
 
-    const url = `${process.env.EMAIL_USER}/emailConfirmation/${hashedEmail}`;
+    const url = `${process.env.FRONTEND_URL_DEV}/emailConfirmation/${saveUser._id}/${hashedEmail}`;
 
     const emailResult = await emailService.sendEmail(
       email,
-      "Ganti Email",
+      "Verifikasi Akun SATRU",
       confirmEmailRegistration(name, url)
     );
 
@@ -186,13 +186,11 @@ export const accountVerification = async (req: Request, res: Response) => {
       new: true,
     });
 
-    res
-      .status(200)
-      .json({
-        status: true,
-        message: `Akun ${user.email} telah aktif sepenuhnya`,
-        data: updatedUser,
-      });
+    res.status(200).json({
+      status: true,
+      message: `Akun ${user.email} telah aktif sepenuhnya`,
+      data: updatedUser,
+    });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
   }
