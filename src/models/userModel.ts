@@ -1,8 +1,16 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { mongo, Schema } from "mongoose";
 import { IUser } from "../interface/userInterface";
 import { PASSWORD_REGEX } from "../utils/passwordRegex";
 
 const UserSchema: Schema<IUser> = new Schema<IUser>({
+  ownerId: {
+    type: mongoose.Types.ObjectId,
+    required: false,
+  },
+  outletId: {
+    type: [],
+    required: [true, "Outlet id harus diisi"],
+  },
   name: { type: String, required: [true, "Nama Harus diisi"], trim: true },
   email: {
     type: String,
@@ -55,6 +63,13 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
   token: { type: String },
   createdAt: { type: Date, required: true, default: Date.now },
   updatedAt: { type: Date, required: false },
+});
+
+UserSchema.pre<IUser>("save", function (next) {
+  if (!this.ownerId) {
+    this.ownerId = this._id as mongoose.Types.ObjectId;
+  }
+  next();
 });
 
 UserSchema.post("save", function (error: any, doc: any, next: any) {

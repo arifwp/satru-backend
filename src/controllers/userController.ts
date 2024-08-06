@@ -15,25 +15,60 @@ import { ResourceDataWithImage } from "../utils/resource";
 const fsPromises = fs.promises;
 
 export const createUser = async (req: Request, res: Response) => {
+  const { userId, name, email, phone, password, owner, bornDate, outletId } =
+    req.body;
+  const finalPhone = `62${phone}`;
+  if (phone[0] !== "8") {
+    return res
+      .status(400)
+      .json({ status: false, message: "Format nomor whatsapp salah" });
+  }
+
   try {
-    const { name, email, phone, password, owner, avatar } = req.body;
     const hashedPassword = await bcryptjs.hash(password, 8);
 
     const newUser = new User({
+      ownerId: userId,
+      outletId: outletId,
       name: name,
       email: email,
-      phone: phone,
+      phone: finalPhone,
       password: hashedPassword,
       owner: owner,
+      bornDate: bornDate,
       status: 1,
-      avatar: avatar,
       created_at: Date.now(),
     });
 
     await newUser.save();
     res.status(201).json({ message: "Sukses menambahkan user baru" });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserByOwner = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Owner id tidak valid" });
+  }
+
+  try {
+    const user = await User.find({
+      ownerId: userId,
+      status: 1,
+      _id: { $ne: userId },
+    }).select("-password -token -__v");
+
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan semua user",
+      data: user,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
   }
 };
 

@@ -8,12 +8,15 @@ import {
   confirmWhatsappChange,
   changeWhatsapp,
   changePassword,
+  getUserByOwner,
+  createUser,
 } from "../controllers/userController";
 import { authMiddlewware } from "../middlewares/authMiddleware";
 import { configUploadAvatar } from "../middlewares/uploadMiddleware";
 
 const userRoute = express.Router();
 
+userRoute.get("/getUserByOwner/:userId", authMiddlewware, getUserByOwner);
 userRoute.get("/getDetailUser/:userId", authMiddlewware, getDetailUser);
 userRoute.put(
   "/updateUser/:userId",
@@ -22,6 +25,7 @@ userRoute.put(
   updateUser
 );
 
+userRoute.post("/createUser", authMiddlewware, createUser);
 userRoute.post("/confirmEmailChange", authMiddlewware, confirmEmailChange);
 userRoute.put("/changeEmail", authMiddlewware, changeEmail);
 
