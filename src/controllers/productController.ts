@@ -508,7 +508,7 @@ export const detailProduct = async (req: Request, res: Response) => {
 };
 
 export const getAllProduct = async (req: Request, res: Response) => {
-  const { ownerId, page = 1, limit = 10 } = req.body; // Set default values for page and limit if they are not provided
+  const { ownerId, page = 1, limit = 10, search = "" } = req.body; // Set default values for page and limit if they are not provided
 
   try {
     const matchStage = {
@@ -516,6 +516,7 @@ export const getAllProduct = async (req: Request, res: Response) => {
         ownerId: new mongoose.Types.ObjectId(ownerId),
         isDeleted: 0,
         categoryId: { $exists: true },
+        name: { $regex: search, $options: "i" },
       },
     };
 
@@ -571,7 +572,7 @@ export const getAllProduct = async (req: Request, res: Response) => {
 };
 
 export const getAllProductByOutlet = async (req: Request, res: Response) => {
-  const { ownerId, outletIds, page = 1, limit = 10 } = req.body;
+  const { ownerId, outletIds, page = 1, limit = 10, search = "" } = req.body;
 
   try {
     const ids = outletIds.split(",");
@@ -581,6 +582,7 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
         ownerId: new mongoose.Types.ObjectId(ownerId),
         outletId: { $in: ids },
         isDeleted: 0,
+        name: { $regex: search, $options: "i" },
       },
     };
 
@@ -636,7 +638,7 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
 };
 
 export const getAllProductByCategory = async (req: Request, res: Response) => {
-  const { ownerId, categoryIds, page = 1, limit = 10 } = req.body;
+  const { ownerId, categoryIds, page = 1, limit = 10, search = "" } = req.body;
 
   try {
     const ids = categoryIds.split(",");
@@ -647,6 +649,7 @@ export const getAllProductByCategory = async (req: Request, res: Response) => {
           $in: ids.map((id: any) => new mongoose.Types.ObjectId(id)),
         },
         isDeleted: 0,
+        name: { $regex: search, $options: "i" },
       },
     };
 
@@ -705,7 +708,14 @@ export const getAllProductByOutletCategory = async (
   req: Request,
   res: Response
 ) => {
-  const { ownerId, outletIds, categoryIds, page = 1, limit = 10 } = req.body;
+  const {
+    ownerId,
+    outletIds,
+    categoryIds,
+    page = 1,
+    limit = 10,
+    search = "",
+  } = req.body;
 
   try {
     const outlets = outletIds.split(",");
@@ -721,6 +731,7 @@ export const getAllProductByOutletCategory = async (
           ),
         },
         isDeleted: 0,
+        name: { $regex: search, $options: "i" },
       },
     };
 
