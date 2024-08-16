@@ -24,14 +24,38 @@ export const createBrand = async (req: Request, res: Response) => {
 };
 
 export const getAllBrand = async (req: Request, res: Response) => {
-  const { ownerId } = req.params;
+  const { ownerId, search = "", page = 1, limit = 10 } = req.body;
 
   try {
-    const brand = await Brand.find({ isDeleted: 0, ownerId: ownerId });
+    const skip = (page - 1) * limit;
+    const searchRegex = new RegExp(search, "i");
+
+    const totalItems = await Brand.countDocuments({
+      isDeleted: 0,
+      ownerId: ownerId,
+      name: { $regex: searchRegex },
+    });
+
+    const brands = await Brand.find({
+      isDeleted: 0,
+      ownerId: ownerId,
+      name: { $regex: searchRegex },
+    })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan semua data merk",
-      data: brand,
+      data: brands,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
