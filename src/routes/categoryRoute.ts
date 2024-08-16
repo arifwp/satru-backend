@@ -9,7 +9,7 @@ import {
 const categoryRouter = express.Router();
 
 categoryRouter.post("/createCategory", authMiddlewware, createCategory);
-categoryRouter.get("/getAllCategory/:ownerId", authMiddlewware, getAllCategory);
+categoryRouter.post("/getAllCategory", authMiddlewware, getAllCategory);
 categoryRouter.delete(
   "/deleteCategory/:categoryId",
   authMiddlewware,
