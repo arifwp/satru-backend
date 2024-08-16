@@ -508,17 +508,19 @@ export const detailProduct = async (req: Request, res: Response) => {
 };
 
 export const getAllProduct = async (req: Request, res: Response) => {
-  const { ownerId } = req.params;
+  const { ownerId, page = 1, limit = 10 } = req.body; // Set default values for page and limit if they are not provided
 
   try {
-    const product = await Product.aggregate([
-      {
-        $match: {
-          ownerId: new mongoose.Types.ObjectId(ownerId),
-          isDeleted: 0,
-          categoryId: { $exists: true, $not: { $size: 0 } },
-        },
+    const matchStage = {
+      $match: {
+        ownerId: new mongoose.Types.ObjectId(ownerId),
+        isDeleted: 0,
+        categoryId: { $exists: true },
       },
+    };
+
+    const products = await Product.aggregate([
+      matchStage,
       {
         $lookup: {
           from: "categorys",
@@ -541,12 +543,27 @@ export const getAllProduct = async (req: Request, res: Response) => {
       {
         $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
       },
+      {
+        $facet: {
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          totalItems: [{ $count: "count" }],
+        },
+      },
     ]);
+
+    const totalItems = products[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
-      data: product,
+      data: products[0].data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
@@ -554,19 +571,21 @@ export const getAllProduct = async (req: Request, res: Response) => {
 };
 
 export const getAllProductByOutlet = async (req: Request, res: Response) => {
-  const { ownerId, outletIds } = req.params;
-  let query: any = { ownerId: ownerId, isDeleted: 0 };
+  const { ownerId, outletIds, page = 1, limit = 10 } = req.body;
 
   try {
     const ids = outletIds.split(",");
-    const product = await Product.aggregate([
-      {
-        $match: {
-          ownerId: new mongoose.Types.ObjectId(ownerId),
-          outletId: { $in: ids },
-          isDeleted: 0,
-        },
+
+    const matchStage = {
+      $match: {
+        ownerId: new mongoose.Types.ObjectId(ownerId),
+        outletId: { $in: ids },
+        isDeleted: 0,
       },
+    };
+
+    const products = await Product.aggregate([
+      matchStage,
       {
         $lookup: {
           from: "categorys",
@@ -589,12 +608,27 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
       {
         $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
       },
+      {
+        $facet: {
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          totalItems: [{ $count: "count" }],
+        },
+      },
     ]);
+
+    const totalItems = products[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
-      data: product,
+      data: products[0].data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
@@ -602,20 +636,22 @@ export const getAllProductByOutlet = async (req: Request, res: Response) => {
 };
 
 export const getAllProductByCategory = async (req: Request, res: Response) => {
-  const { ownerId, categoryIds } = req.params;
-  let query: any = { ownerId: ownerId, isDeleted: 0 };
+  const { ownerId, categoryIds, page = 1, limit = 10 } = req.body;
 
   try {
     const ids = categoryIds.split(",");
-
-    const product = await Product.aggregate([
-      {
-        $match: {
-          ownerId: new mongoose.Types.ObjectId(ownerId),
-          categoryId: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) },
-          isDeleted: 0,
+    const matchStage = {
+      $match: {
+        ownerId: new mongoose.Types.ObjectId(ownerId),
+        categoryId: {
+          $in: ids.map((id: any) => new mongoose.Types.ObjectId(id)),
         },
+        isDeleted: 0,
       },
+    };
+
+    const products = await Product.aggregate([
+      matchStage,
       {
         $lookup: {
           from: "categorys",
@@ -638,16 +674,27 @@ export const getAllProductByCategory = async (req: Request, res: Response) => {
       {
         $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
       },
+      {
+        $facet: {
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          totalItems: [{ $count: "count" }],
+        },
+      },
     ]);
-    // const ctgIds = categoryIds.split(",");
-    // query.categoryId = ctgIds;
 
-    // const product = await Product.find(query).exec();
+    const totalItems = products[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
-      data: product,
+      data: products[0].data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
@@ -658,24 +705,27 @@ export const getAllProductByOutletCategory = async (
   req: Request,
   res: Response
 ) => {
-  const { ownerId, outletIds, categoryIds } = req.params;
-  let query: any = { ownerId: ownerId, isDeleted: 0 };
+  const { ownerId, outletIds, categoryIds, page = 1, limit = 10 } = req.body;
 
   try {
     const outlets = outletIds.split(",");
     const categorys = categoryIds.split(",");
 
-    const product = await Product.aggregate([
-      {
-        $match: {
-          ownerId: new mongoose.Types.ObjectId(ownerId),
-          outletId: { $in: outlets },
-          categoryId: {
-            $in: categorys.map((ctgId) => new mongoose.Types.ObjectId(ctgId)),
-          },
-          isDeleted: 0,
+    const matchStage = {
+      $match: {
+        ownerId: new mongoose.Types.ObjectId(ownerId),
+        outletId: { $in: outlets },
+        categoryId: {
+          $in: categorys.map(
+            (ctgId: any) => new mongoose.Types.ObjectId(ctgId)
+          ),
         },
+        isDeleted: 0,
       },
+    };
+
+    const products = await Product.aggregate([
+      matchStage,
       {
         $lookup: {
           from: "categorys",
@@ -698,32 +748,27 @@ export const getAllProductByOutletCategory = async (
       {
         $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
       },
+      {
+        $facet: {
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          totalItems: [{ $count: "count" }],
+        },
+      },
     ]);
 
-    // const products = await Product.find({ ownerId: ownerId, isDeleted: 0 });
-    // if (!outletIds) {
-    //   return res.status(200).json({
-    //     status: true,
-    //     message: "Berhasil menampilkan data",
-    //     data: products,
-    //   });
-    // }
+    const totalItems = products[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
-    // if (outletIds) {
-    //   const ids = outletIds.split(",");
-    //   query.outletId = { $in: ids };
-    // }
-
-    // if (categoryIds) {
-    //   const ctgIds = categoryIds.split(",");
-    //   query.categoryId = ctgIds;
-    // }
-
-    // const product = await Product.find(query).exec();
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data",
-      data: product,
+      data: products[0].data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
