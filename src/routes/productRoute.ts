@@ -30,22 +30,22 @@ productRouter.post(
 );
 
 productRouter.get("/detailProduct/:productId", authMiddlewware, detailProduct);
-productRouter.get("/getAllProduct/:ownerId", authMiddlewware, getAllProduct);
+productRouter.post("/getAllProduct", authMiddlewware, getAllProduct);
 
-productRouter.get(
-  "/getAllProductByOutlet/:ownerId/:outletIds",
+productRouter.post(
+  "/getAllProductByOutlet",
   authMiddlewware,
   getAllProductByOutlet
 );
 
-productRouter.get(
-  "/getAllProductByCategory/:ownerId/:categoryIds",
+productRouter.post(
+  "/getAllProductByCategory",
   authMiddlewware,
   getAllProductByCategory
 );
 
-productRouter.get(
-  "/getAllProductByOutletCategory/:ownerId/:outletIds/:categoryIds?",
+productRouter.post(
+  "/getAllProductByOutletCategory",
   authMiddlewware,
   getAllProductByOutletCategory
 );
