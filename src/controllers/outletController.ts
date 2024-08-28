@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Outlet from "../models/outletModel";
-import User from "../models/userModel";
 import TypeOutlet from "../models/typeOutletModel";
+import User from "../models/userModel";
 
 export const createOutlet = async (req: Request, res: Response) => {
   const { ownerId, name, estEmployee, address, typeId } = req.body;
@@ -146,6 +146,50 @@ export const getAllOutlet = async (req: Request, res: Response) => {
       message: "Berhasil menampilkan data semua outlet",
       data: outlet,
     });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const getTax = async (req: Request, res: Response) => {
+  const { ownerId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Owner id tidak valid" });
+  }
+
+  try {
+    const outlet = await Outlet.findOne({
+      ownerId: ownerId,
+      isDeleted: 0,
+    }).select("tax");
+    return res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan pajak",
+      data: outlet,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+export const updateTax = async (req: Request, res: Response) => {
+  const { ownerId, tax } = req.body;
+
+  try {
+    const findTax = await Outlet.find({ ownerId: ownerId, isDeleted: 0 });
+
+    if (!findTax) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Tidak dapat menemukan data" });
+    }
+
+    await Outlet.updateMany({ ownerId: ownerId }, { $set: { tax: tax } });
+
+    res.status(200).json({ status: true, message: "Berhasil merubah pajak" });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
   }

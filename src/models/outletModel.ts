@@ -18,6 +18,11 @@ const OutletSchema: Schema<Outlet_Interface> = new Schema<Outlet_Interface>({
     type: String,
     required: [true, "Alamat bisnis harus diisi"],
   },
+  tax: {
+    type: Number,
+    required: [true, "Estimasi karyawan harus diisi"],
+    default: 0,
+  },
   typeId: {
     type: mongoose.Schema.Types.ObjectId,
     required: [true, "Tipe bisnis harus diisi"],

@@ -6,6 +6,7 @@ export interface Outlet_Interface extends Document {
   name: string;
   estEmployee: number;
   address: string;
+  tax?: number;
   typeId: Type_Outlet_Interface;
   isDeleted: number;
   createdAt: Date;
