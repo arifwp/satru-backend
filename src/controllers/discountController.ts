@@ -59,7 +59,10 @@ export const updateDiscount = async (req: Request, res: Response) => {
 
   try {
     const getOwner = await User.findById({ _id: ownerId });
-    const getDiscount = await Discount.findById({ _id: discountId });
+    const getDiscount = await Discount.findById({
+      _id: discountId,
+      isDeleted: 0,
+    });
     if (!getOwner) {
       return res
         .status(404)
