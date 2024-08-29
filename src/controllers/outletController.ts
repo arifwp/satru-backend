@@ -125,7 +125,7 @@ export const detailOutlet = async (req: Request, res: Response) => {
 };
 
 export const getAllOutlet = async (req: Request, res: Response) => {
-  const ownerId = req.params.ownerId;
+  const { ownerId, page = 1, limit = 10, search = "" } = req.body;
   if (!mongoose.Types.ObjectId.isValid(ownerId)) {
     return res
       .status(400)
@@ -133,18 +133,48 @@ export const getAllOutlet = async (req: Request, res: Response) => {
   }
 
   try {
-    const outlet = await Outlet.find({ isDeleted: 0, ownerId: ownerId });
+    const matchStage: any = {
+      $match: {
+        ownerId: new mongoose.Types.ObjectId(ownerId),
+        isDeleted: 0,
+        name: { $regex: search, $options: "i" },
+      },
+    };
 
-    if (!outlet) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Tidak ada data outlet" });
-    }
+    const outlets = await Outlet.aggregate([
+      matchStage,
+      {
+        $lookup: {
+          from: "typeoutlets",
+          localField: "typeId",
+          foreignField: "_id",
+          as: "typeoutlet",
+        },
+      },
+      {
+        $unwind: "$typeoutlet",
+      },
+      {
+        $facet: {
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          totalItems: [{ $count: "count" }],
+        },
+      },
+    ]);
+
+    const totalItems = outlets[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.status(200).json({
       status: true,
       message: "Berhasil menampilkan data semua outlet",
-      data: outlet,
+      data: outlets[0].data,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
