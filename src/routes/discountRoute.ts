@@ -3,14 +3,16 @@ import {
   createDiscount,
   deleteDiscount,
   getAllDiscount,
+  detailDiscount,
   updateDiscount,
 } from "../controllers/discountController";
 
 const discountRouter = express.Router();
 
 discountRouter.post("/createDiscount", createDiscount);
-discountRouter.put("/updateDiscount", updateDiscount);
 discountRouter.post("/getAllDiscount", getAllDiscount),
-  discountRouter.delete("/deleteDiscount/:discountId", deleteDiscount);
+  discountRouter.get("/detailDiscount/:ownerId/:discountId", detailDiscount);
+discountRouter.put("/updateDiscount", updateDiscount);
+discountRouter.delete("/deleteDiscount/:discountId", deleteDiscount);
 
 export default discountRouter;
