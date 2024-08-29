@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Discount from "../models/discountModel";
 import mongoose from "mongoose";
 import User from "../models/userModel";
+import Outlet from "../models/outletModel";
 
 export const createDiscount = async (req: Request, res: Response) => {
   const { ownerId, outletId, name, discountType, discount, expiredDate } =
@@ -99,12 +100,62 @@ export const updateDiscount = async (req: Request, res: Response) => {
   }
 };
 
+export const detailDiscount = async (req: Request, res: Response) => {
+  const { ownerId, discountId } = req.params;
+
+  try {
+    const user = await User.findById({ _id: ownerId });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Tidak dapat menemukan data" });
+    }
+
+    const discount = await Discount.findById({ _id: discountId });
+
+    if (!discount) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Tidak dapat menemukan data" });
+    }
+
+    const discountObj = discount.toObject();
+
+    let ids;
+    discount.outletId.map((item: any, _: any) => (ids = item));
+    const outletIds = ids && (ids as string).toString().split(",");
+    const outlet = await Outlet.aggregate([
+      {
+        $match: {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          _id: {
+            $in:
+              outletIds &&
+              (outletIds as []).map(
+                (id: string) => new mongoose.Types.ObjectId(id)
+              ),
+          },
+        },
+      },
+    ]);
+
+    Object.assign(discountObj, { outlet: outlet });
+
+    res.status(200).json({
+      status: true,
+      message: "Berhasil menampilkan detail diskon",
+      data: discountObj,
+    });
+  } catch (error: any) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
 export const getAllDiscount = async (req: Request, res: Response) => {
   const { ownerId, outletIds, page = 1, limit = 10, search = "" } = req.body;
 
   try {
-    // const ids = outletIds.split(",");
-
     const matchStage: any = {
       $match: {
         ownerId: new mongoose.Types.ObjectId(ownerId),
