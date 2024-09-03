@@ -35,7 +35,7 @@ export const createDiscount = async (req: Request, res: Response) => {
 
     await newDiscount.save();
 
-    res.status(201).json({ status: false, message: "Diskon berhasil dibuat" });
+    res.status(201).json({ status: true, message: "Diskon berhasil dibuat" });
   } catch (error: any) {
     res.status(500).json({ status: false, message: error.message });
   }
