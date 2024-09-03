@@ -13,6 +13,7 @@ import cors from "cors";
 import brandRouter from "./routes/brandRoute";
 import categoryRouter from "./routes/categoryRoute";
 import discountRouter from "./routes/discountRoute";
+import memberRouter from "./routes/memberRoute";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use("/api/v1/typeOutlet", typeOutletRouter);
 app.use("/api/v1/brand", brandRouter);
 app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/discount", discountRouter);
+app.use("/api/v1/member", memberRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
