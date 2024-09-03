@@ -13,11 +13,7 @@ const memberRouter = express.Router();
 memberRouter.post("/createMember", authMiddlewware, createMember);
 memberRouter.post("/getAllMember", authMiddlewware, getAllMember);
 memberRouter.put("/updateMember", authMiddlewware, updateMember);
-memberRouter.get(
-  "/detailMember/:memberId/:ownerId",
-  authMiddlewware,
-  detailMember
-);
+memberRouter.get("/detailMember/:memberId", authMiddlewware, detailMember);
 memberRouter.delete("/deleteMember/:memberId", authMiddlewware, deleteMember);
 
 export default memberRouter;

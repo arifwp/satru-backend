@@ -48,8 +48,7 @@ export const createMember = async (req: Request, res: Response) => {
 };
 
 export const updateMember = async (req: Request, res: Response) => {
-  const { ownerId, userId, memberId, outletId, name, phone, bornDate } =
-    req.body;
+  const { ownerId, userId, memberId, name, phone, bornDate } = req.body;
   const finalPhone = `62${phone}`;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -85,7 +84,6 @@ export const updateMember = async (req: Request, res: Response) => {
     }
 
     const update = {
-      outletId: outletId,
       name: name,
       phone: finalPhone,
       bornDate: bornDate,
@@ -106,7 +104,7 @@ export const updateMember = async (req: Request, res: Response) => {
 };
 
 export const detailMember = async (req: Request, res: Response) => {
-  const { memberId, ownerId } = req.params;
+  const { memberId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(memberId)) {
     return res
