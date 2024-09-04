@@ -15,6 +15,10 @@ const MemberSchema: Schema<Member_Interface> = new Schema<Member_Interface>({
     required: [true, "Nama member harus diisi"],
     trim: true,
   },
+  gender: {
+    type: String,
+    required: [true, "Jenis kelamin harus diisi"],
+  },
   phone: {
     type: String,
     required: [true, "Nomor telepon harus diisi"],

@@ -4,7 +4,7 @@ import Member from "../models/memberModel";
 import Outlet from "../models/outletModel";
 
 export const createMember = async (req: Request, res: Response) => {
-  const { ownerId, userId, name, phone, bornDate } = req.body;
+  const { ownerId, userId, name, phone, bornDate, gender } = req.body;
   const finalPhone = `62${phone}`;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -32,6 +32,7 @@ export const createMember = async (req: Request, res: Response) => {
       name: name,
       phone: finalPhone,
       bornDate: bornDate,
+      gender: gender,
       totalTransaction: 0,
       createdAt: Date.now(),
     });
@@ -48,7 +49,7 @@ export const createMember = async (req: Request, res: Response) => {
 };
 
 export const updateMember = async (req: Request, res: Response) => {
-  const { ownerId, userId, memberId, name, phone, bornDate } = req.body;
+  const { ownerId, userId, memberId, name, phone, bornDate, gender } = req.body;
   const finalPhone = `62${phone}`;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -87,6 +88,7 @@ export const updateMember = async (req: Request, res: Response) => {
       name: name,
       phone: finalPhone,
       bornDate: bornDate,
+      gender: gender,
     };
 
     const updatedMember = await Member.findByIdAndUpdate(memberId, update, {

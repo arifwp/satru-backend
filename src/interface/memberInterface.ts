@@ -6,6 +6,7 @@ export interface Member_Interface extends Document {
   name: string;
   phone: string;
   bornDate: Date;
+  gender: string;
   totalTransaction: number;
   isDeleted: number;
   createdAt: Date;
