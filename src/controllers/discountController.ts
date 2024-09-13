@@ -123,8 +123,12 @@ export const detailDiscount = async (req: Request, res: Response) => {
     const discountObj = discount.toObject();
 
     let ids;
-    discount.outletId.map((item: any, _: any) => (ids = item));
-    const outletIds = ids && (ids as string).toString().split(",");
+    const defineIds = discount.outletId.map((item: any) => item);
+    const outletIds =
+      defineIds && defineIds.length
+        ? defineIds.map((id: string) => new mongoose.Types.ObjectId(id))
+        : [];
+
     const outlet = await Outlet.aggregate([
       {
         $match: {
